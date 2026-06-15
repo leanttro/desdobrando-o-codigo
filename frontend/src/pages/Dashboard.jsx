@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
 function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -20,12 +21,10 @@ function Dashboard() {
         if (isMounted) {
           const data = response.data || {};
 
-          // Backend retorna { analyses: [...], errors: [...] }
-          // Normaliza tudo num array único com campo "type" e "summary"
           const analyses = (data.analyses || []).map((a) => ({
             id: a.id,
-            type: a.type || 'Análise',
-            summary: a.title || a.result || '—',
+            type: a.type === 'n8n' ? 'n8n' : 'Código',
+            summary: a.title || '—',
             created_at: a.created_at,
           }));
 
@@ -34,9 +33,9 @@ function Dashboard() {
             type: 'Erro',
             summary: e.error_input || e.explanation || '—',
             created_at: e.created_at,
+            isError: true,
           }));
 
-          // Junta e ordena do mais recente pro mais antigo
           const merged = [...analyses, ...errors].sort(
             (a, b) => new Date(b.created_at) - new Date(a.created_at)
           );
@@ -55,11 +54,14 @@ function Dashboard() {
     };
 
     fetchHistory();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
+
+  const handleItemClick = (item) => {
+    if (!item.isError) {
+      navigate(`/history/${item.id}`);
+    }
+  };
 
   return (
     <div className="dashboard">
@@ -102,16 +104,25 @@ function Dashboard() {
         {!loading && !error && history.length > 0 && (
           <ul className="dashboard__history-list">
             {history.map((item) => (
-              <li key={item.id} className="dashboard__history-item">
+              <li
+                key={item.id}
+                className={`dashboard__history-item${!item.isError ? ' dashboard__history-item--clickable' : ''}`}
+                onClick={() => handleItemClick(item)}
+              >
                 <div>
                   <span className="dashboard__history-type">{item.type}</span>
                   <p>{item.summary}</p>
                 </div>
-                {item.created_at && (
-                  <span className="dashboard__history-date">
-                    {new Date(item.created_at).toLocaleString('pt-BR')}
-                  </span>
-                )}
+                <div className="dashboard__history-right">
+                  {item.created_at && (
+                    <span className="dashboard__history-date">
+                      {new Date(item.created_at).toLocaleString('pt-BR')}
+                    </span>
+                  )}
+                  {!item.isError && (
+                    <span className="dashboard__history-arrow">→</span>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
