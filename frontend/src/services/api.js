@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BACKEND_URL = 'https://novo.leanttro.com'
+const BACKEND_URL = '/api'
 const GROQ_KEY_STORAGE = 'groq_api_key'
 const JWT_STORAGE = 'auth_token'
 
@@ -12,13 +12,11 @@ const api = axios.create({
 // ── Request interceptor ──────────────────────────────────
 api.interceptors.request.use(
   (config) => {
-    // Inject JWT
     const token = localStorage.getItem(JWT_STORAGE)
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
 
-    // Inject Groq key — read fresh every request, never cached in memory
     const groqKey = localStorage.getItem(GROQ_KEY_STORAGE)
     if (groqKey) {
       config.headers['X-Groq-Key'] = groqKey
