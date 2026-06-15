@@ -15,7 +15,7 @@ function Glossary() {
       try {
         const response = await api.get('/glossary');
         if (isMounted) {
-          setConcepts(response.data || []);
+          setConcepts(response.data?.glossary || []);
         }
       } catch {
         if (isMounted) {
