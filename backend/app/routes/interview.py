@@ -1,16 +1,21 @@
 """
 routes/interview.py
-POST /interview/generate  → gera perguntas de entrevista baseadas numa análise existente
-POST /interview/evaluate  → avalia a resposta do usuário a uma pergunta
+POST /interview/generate          → gera perguntas baseadas numa análise existente
+POST /interview/evaluate          → avalia a resposta do usuário a uma pergunta
+POST /interview/save              → salva a sessão completa ao terminar
+GET  /interview/history/<id>      → lista sessões salvas de uma análise
 """
 
 from __future__ import annotations
 
 import json
+import uuid
 
 from flask import Blueprint, g, jsonify, request
 
+from app.extensions import db
 from app.models.analysis import Analysis
+from app.models.interview_session import InterviewSession
 from app.services.groq_service import GroqError, call_groq
 from app.utils.jwt_helper import jwt_required
 
@@ -65,7 +70,6 @@ def _get_groq_key() -> str | None:
 
 
 def _parse_groq_json(raw: str) -> dict:
-    """Tenta parsear a resposta da Groq como JSON, com fallback gracioso."""
     try:
         clean = raw.strip()
         if clean.startswith("```"):
@@ -79,7 +83,6 @@ def _parse_groq_json(raw: str) -> dict:
 
 
 def _get_analysis_or_404(analysis_id: str, user_id: str):
-    """Busca análise do usuário ou retorna None."""
     return Analysis.query.filter_by(
         id=analysis_id,
         user_id=user_id,
@@ -87,7 +90,6 @@ def _get_analysis_or_404(analysis_id: str, user_id: str):
 
 
 def _build_analysis_context(analysis: Analysis) -> str:
-    """Monta o contexto do projeto a partir do resultado da análise."""
     result = analysis.result or {}
     parts = [f"Projeto: {analysis.title}"]
 
@@ -131,7 +133,7 @@ def generate_questions():
     if not analysis_id:
         return jsonify({"error": "Campo 'analysis_id' obrigatório."}), 400
 
-    count = max(1, min(count, 15))  # limita entre 1 e 15
+    count = max(1, min(count, 15))
 
     analysis = _get_analysis_or_404(analysis_id, g.current_user_id)
     if not analysis:
@@ -183,7 +185,6 @@ def evaluate_answer():
     if not answer:
         return jsonify({"error": "Campo 'answer' obrigatório."}), 400
 
-    # Contexto do projeto é opcional mas melhora a avaliação
     project_context = ""
     if analysis_id:
         analysis = _get_analysis_or_404(analysis_id, g.current_user_id)
@@ -208,7 +209,6 @@ def evaluate_answer():
 
     parsed = _parse_groq_json(raw)
 
-    # Garante que score é inteiro entre 0 e 10
     score = parsed.get("score", 0)
     try:
         score = max(0, min(10, int(score)))
@@ -217,3 +217,60 @@ def evaluate_answer():
     parsed["score"] = score
 
     return jsonify(parsed), 200
+
+
+# ---------------------------------------------------------------------------
+# POST /interview/save
+# ---------------------------------------------------------------------------
+
+@interview_bp.route("/save", methods=["POST"])
+@jwt_required
+def save_session():
+    body = request.get_json(silent=True) or {}
+    analysis_id = body.get("analysis_id")
+    results = body.get("results", [])
+
+    if not analysis_id:
+        return jsonify({"error": "Campo 'analysis_id' obrigatório."}), 400
+    if not results:
+        return jsonify({"error": "Campo 'results' obrigatório."}), 400
+
+    analysis = _get_analysis_or_404(analysis_id, g.current_user_id)
+    if not analysis:
+        return jsonify({"error": "Análise não encontrada."}), 404
+
+    scores = [r.get("feedback", {}).get("score", 0) for r in results]
+    score_avg = round(sum(scores) / len(scores), 1) if scores else None
+
+    session = InterviewSession(
+        id=uuid.uuid4(),
+        user_id=g.current_user_id,
+        analysis_id=analysis_id,
+        score_avg=score_avg,
+        results=results,
+    )
+    db.session.add(session)
+    db.session.commit()
+
+    return jsonify(session.to_dict()), 201
+
+
+# ---------------------------------------------------------------------------
+# GET /interview/history/<analysis_id>
+# ---------------------------------------------------------------------------
+
+@interview_bp.route("/history/<analysis_id>", methods=["GET"])
+@jwt_required
+def get_history(analysis_id):
+    analysis = _get_analysis_or_404(analysis_id, g.current_user_id)
+    if not analysis:
+        return jsonify({"error": "Análise não encontrada."}), 404
+
+    sessions = (
+        InterviewSession.query
+        .filter_by(analysis_id=analysis_id, user_id=g.current_user_id)
+        .order_by(InterviewSession.created_at.desc())
+        .all()
+    )
+
+    return jsonify([s.to_dict() for s in sessions]), 200
