@@ -1,54 +1,91 @@
 import './WorkflowResult.css';
 
+const RISK_LABELS = {
+  alto: { label: 'Alto', className: 'risk-badge risk-badge--alto' },
+  medio: { label: 'Médio', className: 'risk-badge risk-badge--medio' },
+  baixo: { label: 'Baixo', className: 'risk-badge risk-badge--baixo' },
+};
+
 function WorkflowResult({ result }) {
   if (!result) return null;
 
-  const { summary, nodes_explained, potential_issues, suggestions } = result;
+  // O backend retorna { id, title, type, result: { what_it_does, nodes_explained, risks, improvements, fix_prompts }, created_at }
+  // O N8nAnalyze.jsx faz setResult(response.data), então result aqui é o objeto inteiro
+  const data = result.result || result;
+
+  const {
+    what_it_does,
+    nodes_explained,
+    risks,
+    improvements,
+    fix_prompts,
+  } = data;
+
+  if (!what_it_does && !nodes_explained && !risks) {
+    return (
+      <div className="workflow-result workflow-result--empty">
+        <p>Os resultados do workflow vão aparecer aqui.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="workflow-result">
-      {summary && (
+
+      {what_it_does && (
         <section className="workflow-result__section">
-          <h3>Resumo do workflow</h3>
-          <p>{summary}</p>
+          <h3>O que o workflow faz</h3>
+          <p>{what_it_does}</p>
         </section>
       )}
 
-      {Array.isArray(nodes_explained) && nodes_explained.length > 0 && (
+      {nodes_explained && (
         <section className="workflow-result__section">
-          <h3>Nós do workflow</h3>
-          <div className="workflow-result__nodes">
-            {nodes_explained.map((node, index) => (
-              <div key={index} className="workflow-result__node">
-                <h4>{node.name || `Nó ${index + 1}`}</h4>
-                <p>{node.explanation}</p>
-              </div>
-            ))}
+          <h3>Nodes explicados</h3>
+          <p>{nodes_explained}</p>
+        </section>
+      )}
+
+      {risks && typeof risks === 'object' && (
+        <section className="workflow-result__section">
+          <h3>Riscos identificados</h3>
+          <div className="workflow-result__risks">
+            {['alto', 'medio', 'baixo'].map((level) =>
+              risks[level]?.length ? (
+                <div key={level} className="risk-group">
+                  <span className={RISK_LABELS[level].className}>
+                    {RISK_LABELS[level].label}
+                  </span>
+                  <ul>
+                    {risks[level].map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null
+            )}
           </div>
         </section>
       )}
 
-      {Array.isArray(potential_issues) && potential_issues.length > 0 && (
+      {improvements && (
         <section className="workflow-result__section">
-          <h3>Possíveis problemas</h3>
-          <ul>
-            {potential_issues.map((issue, index) => (
-              <li key={index} className="workflow-result__issue">{issue}</li>
+          <h3>Como melhorar</h3>
+          <p>{improvements}</p>
+        </section>
+      )}
+
+      {Array.isArray(fix_prompts) && fix_prompts.length > 0 && (
+        <section className="workflow-result__section">
+          <h3>Prompts de correção</h3>
+          <ul className="workflow-result__prompts">
+            {fix_prompts.map((prompt, i) => (
+              <li key={i} className="workflow-result__prompt">{prompt}</li>
             ))}
           </ul>
         </section>
       )}
 
-      {Array.isArray(suggestions) && suggestions.length > 0 && (
-        <section className="workflow-result__section">
-          <h3>Sugestões de melhoria</h3>
-          <ul>
-            {suggestions.map((suggestion, index) => (
-              <li key={index}>{suggestion}</li>
-            ))}
-          </ul>
-        </section>
-      )}
     </div>
   );
 }
