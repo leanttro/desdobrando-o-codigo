@@ -11,16 +11,47 @@ from typing import Any
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-# Lista de modelos a tentar, em ordem de preferência.
-# Se um deles for descontinuado pela Groq, o próximo da lista é tentado
-# automaticamente, sem precisar mudar código.
-GROQ_MODELS = [
-    "llama-3.3-70b-versatile",
-    "llama-3.1-70b-versatile",
-    "llama-3.1-8b-instant",
-    "openai/gpt-oss-120b",
+# Lista de modelos a tentar, em ordem de preferência, com o limite de
+# tokens por minuto (TPM) de cada um no tier gratuito ("on_demand").
+# Esses valores podem mudar — confira em https://console.groq.com/settings/limits
+GROQ_MODELS: list[tuple[str, int]] = [
+    ("llama-3.3-70b-versatile", 12_000),
+    ("llama-3.1-8b-instant", 20_000),
+    ("llama-3.1-70b-versatile", 12_000),
+    ("openai/gpt-oss-120b", 8_000),
 ]
 MAX_TOKENS = 4096
+
+# Margem de segurança e estimativa de chars-por-token usada para
+# truncar o conteúdo do usuário antes de enviar à Groq.
+_SAFETY_MARGIN_TOKENS = 500
+_CHARS_PER_TOKEN_ESTIMATE = 3.0
+
+
+def _estimate_tokens(text: str) -> int:
+    """Estimativa grosseira de tokens a partir do tamanho do texto."""
+    return int(len(text) / _CHARS_PER_TOKEN_ESTIMATE) + 1
+
+
+def _truncate_for_budget(text: str, system_prompt: str, tpm_limit: int) -> str:
+    """Trunca `text` para caber no orçamento de tokens do modelo."""
+    overhead = _estimate_tokens(system_prompt) + MAX_TOKENS + _SAFETY_MARGIN_TOKENS
+    budget_tokens = tpm_limit - overhead
+
+    if budget_tokens <= 0:
+        # Nem o system prompt + resposta cabem — não há o que enviar.
+        return ""
+
+    budget_chars = int(budget_tokens * _CHARS_PER_TOKEN_ESTIMATE)
+    if len(text) <= budget_chars:
+        return text
+
+    truncated = text[:budget_chars]
+    return (
+        truncated
+        + "\n\n[... conteúdo truncado por limite de tokens da Groq — "
+        "projeto maior do que o suportado no plano gratuito ...]"
+    )
 
 
 class GroqError(Exception):
