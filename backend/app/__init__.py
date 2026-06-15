@@ -27,7 +27,7 @@ def create_app(config_object: object = Config) -> Flask:
     # Blueprints — Etapa 1
     # -----------------------------------------------------------------------
     from app.routes.auth import auth_bp
-    app.register_blueprint(auth_bp)
+    app.register_blueprint(auth_bp, url_prefix="/auth")
 
     # -----------------------------------------------------------------------
     # Blueprints — Etapa 2
