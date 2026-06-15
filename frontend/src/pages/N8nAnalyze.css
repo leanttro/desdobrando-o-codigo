@@ -6,24 +6,25 @@
 
 .n8n-analyze__title {
   margin: 0;
-  color: #1e293b;
+  color: var(--text);
 }
 
 .n8n-analyze__subtitle {
-  color: #64748b;
+  color: var(--text-muted);
   margin: 0.25rem 0 1.5rem 0;
 }
 
 .n8n-analyze__notice {
-  background-color: #eff6ff;
-  color: #2563eb;
+  background-color: #7C3AED22;
+  color: var(--purple-light);
+  border: 1px solid #7C3AED44;
   font-size: 0.85rem;
   padding: 0.6rem 1rem;
-  border-radius: 6px;
+  border-radius: var(--radius);
   margin-bottom: 1.5rem;
 }
 
 .n8n-analyze__error {
-  color: #dc2626;
+  color: #f87171;
   margin-top: 1rem;
 }
