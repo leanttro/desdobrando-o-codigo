@@ -10,7 +10,16 @@ import urllib.error
 from typing import Any
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.3-70b-versatile"
+
+# Lista de modelos a tentar, em ordem de preferência.
+# Se um deles for descontinuado pela Groq, o próximo da lista é tentado
+# automaticamente, sem precisar mudar código.
+GROQ_MODELS = [
+    "llama-3.3-70b-versatile",
+    "llama-3.1-70b-versatile",
+    "llama-3.1-8b-instant",
+    "openai/gpt-oss-120b",
+]
 MAX_TOKENS = 4096
 
 
@@ -46,51 +55,68 @@ def call_groq(
     if not groq_key or not groq_key.strip():
         raise GroqError("X-Groq-Key ausente ou vazio.", status_code=400)
 
-    payload: dict[str, Any] = {
-        "model": GROQ_MODEL,
-        "max_tokens": MAX_TOKENS,
-        "temperature": temperature,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
-    }
-    if response_format == "json_object":
-        payload["response_format"] = {"type": "json_object"}
+    last_error: GroqError | None = None
 
-    body = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        GROQ_API_URL,
-        data=body,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {groq_key.strip()}",
-            "User-Agent": "Mozilla/5.0 (compatible; LeanttroBackend/1.0)",
-        },
-        method="POST",
+    for model in GROQ_MODELS:
+        payload: dict[str, Any] = {
+            "model": model,
+            "max_tokens": MAX_TOKENS,
+            "temperature": temperature,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+        }
+        if response_format == "json_object":
+            payload["response_format"] = {"type": "json_object"}
+
+        body = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            GROQ_API_URL,
+            data=body,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {groq_key.strip()}",
+                "User-Agent": "Mozilla/5.0 (compatible; LeanttroBackend/1.0)",
+            },
+            method="POST",
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                return data["choices"][0]["message"]["content"]
+
+        except urllib.error.HTTPError as exc:
+            raw = exc.read().decode("utf-8", errors="replace")
+
+            if exc.code == 401:
+                raise GroqError(
+                    "Chave da Groq inválida ou sem permissão.", status_code=401
+                ) from exc
+            if exc.code == 429:
+                raise GroqError(
+                    "Limite de requisições da Groq atingido. Tente novamente em instantes.",
+                    status_code=429,
+                ) from exc
+
+            # Se o modelo foi descontinuado, tenta o próximo da lista
+            if exc.code == 400 and "model_decommissioned" in raw:
+                last_error = GroqError(
+                    f"Erro da API Groq ({exc.code}): {raw[:300]}", status_code=502
+                )
+                continue
+
+            raise GroqError(
+                f"Erro da API Groq ({exc.code}): {raw[:300]}", status_code=502
+            ) from exc
+
+        except urllib.error.URLError as exc:
+            raise GroqError(
+                f"Falha de conexão com a Groq: {exc.reason}", status_code=503
+            ) from exc
+
+    # Todos os modelos da lista falharam por descontinuação
+    raise last_error or GroqError(
+        "Nenhum modelo disponível na Groq no momento.", status_code=502
     )
-
-    try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            return data["choices"][0]["message"]["content"]
-
-    except urllib.error.HTTPError as exc:
-        raw = exc.read().decode("utf-8", errors="replace")
-        if exc.code == 401:
-            raise GroqError(
-                "Chave da Groq inválida ou sem permissão.", status_code=401
-            ) from exc
-        if exc.code == 429:
-            raise GroqError(
-                "Limite de requisições da Groq atingido. Tente novamente em instantes.",
-                status_code=429,
-            ) from exc
-        raise GroqError(
-            f"Erro da API Groq ({exc.code}): {raw[:300]}", status_code=502
-        ) from exc
-
-    except urllib.error.URLError as exc:
-        raise GroqError(
-            f"Falha de conexão com a Groq: {exc.reason}", status_code=503
-        ) from exc
