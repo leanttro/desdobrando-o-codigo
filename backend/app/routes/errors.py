@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import uuid
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
 
 from app.extensions import db
 from app.models.error_log import ErrorLog
@@ -34,7 +34,9 @@ Não inclua texto fora do JSON. Não use markdown ao redor do JSON."""
 
 @errors_bp.route("/identify", methods=["POST"])
 @jwt_required
-def identify_error(current_user):
+def identify_error():
+    user_id = g.current_user_id
+
     groq_key = request.headers.get("X-Groq-Key", "").strip()
     if not groq_key:
         return jsonify({"error": "Header X-Groq-Key ausente ou vazio."}), 400
@@ -49,7 +51,7 @@ def identify_error(current_user):
         return jsonify({"error": "Erro muito longo. Máximo de 20.000 caracteres."}), 400
 
     # 1. Monta contexto do usuário
-    user_context = build_context(str(current_user.id))
+    user_context = build_context(user_id)
     system_prompt = _ERRORS_SYSTEM
     if user_context:
         system_prompt = user_context + "\n\n" + system_prompt
@@ -84,7 +86,7 @@ def identify_error(current_user):
     # 4. Salva no banco
     log = ErrorLog(
         id=uuid.uuid4(),
-        user_id=str(current_user.id),
+        user_id=user_id,
         error_input=error_input,
         explanation=explanation,
         fix_prompt=fix_prompt,
