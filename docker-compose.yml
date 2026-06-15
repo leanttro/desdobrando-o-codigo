@@ -30,12 +30,7 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
-    command: >
-      sh -c "
-        python -m alembic upgrade head &&
-        gunicorn --bind 0.0.0.0:8000 --workers 4 --timeout 120
-                 --reload --access-logfile - --error-logfile - wsgi:app
-      "
+    command: gunicorn --bind 0.0.0.0:8000 --workers 4 --timeout 120 --access-logfile - --error-logfile - wsgi:app
 
   frontend:
     build:
