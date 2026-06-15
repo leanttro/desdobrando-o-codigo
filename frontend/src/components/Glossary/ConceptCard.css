@@ -1,0 +1,44 @@
+.concept-card {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.concept-card__term {
+  margin: 0;
+  color: #2563eb;
+  font-size: 1.1rem;
+}
+
+.concept-card__explanation {
+  margin: 0;
+  color: #1e293b;
+  line-height: 1.6;
+}
+
+.concept-card__block {
+  background-color: #f8fafc;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+}
+
+.concept-card__label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.04em;
+}
+
+.concept-card__block p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
