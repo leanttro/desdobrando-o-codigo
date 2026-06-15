@@ -65,6 +65,7 @@ def call_groq(
         headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {groq_key.strip()}",
+            "User-Agent": "Mozilla/5.0 (compatible; LeanttroBackend/1.0)",
         },
         method="POST",
     )
