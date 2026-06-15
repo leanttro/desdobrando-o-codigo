@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BACKEND_URL = 'https://app.leanttro.com'
+const BACKEND_URL = 'https://novo.leanttro.com'
 const GROQ_KEY_STORAGE = 'groq_api_key'
 const JWT_STORAGE = 'auth_token'
 
