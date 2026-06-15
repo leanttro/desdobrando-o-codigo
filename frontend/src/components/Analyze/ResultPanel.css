@@ -17,27 +17,108 @@
   background-color: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 1.25rem;
+  padding: 1.25rem 1.5rem;
 }
 
 .result-panel__title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.05rem;
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
   color: #1e293b;
 }
 
-.result-panel__content p {
+/* Texto simples */
+.result-panel__text {
   margin: 0;
   color: #475569;
-  line-height: 1.6;
-  white-space: pre-wrap;
+  line-height: 1.7;
 }
 
-.result-panel__pre {
-  background-color: #f8fafc;
-  border-radius: 6px;
-  padding: 0.75rem;
-  font-size: 0.85rem;
-  overflow-x: auto;
-  color: #334155;
+/* Listas */
+.result-panel__list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #475569;
+  line-height: 1.8;
+}
+
+/* Riscos */
+.result-panel__risks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.risk-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.risk-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.risk-badge--alto {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.risk-badge--medio {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.risk-badge--baixo {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+/* Perguntas & Respostas */
+.result-panel__qa {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.qa-item__question {
+  margin: 0 0 0.25rem 0;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.qa-item__answer {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+  padding-left: 1.25rem;
+  border-left: 3px solid #e2e8f0;
+}
+
+/* Objeto genérico chave:valor */
+.result-panel__map {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.map-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.map-item__key {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
