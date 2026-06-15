@@ -9,10 +9,11 @@ from __future__ import annotations
 import json
 import uuid
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
 
 from app.extensions import db
 from app.models.analysis import Analysis
+from app.models.user import User
 from app.services.context_builder import build_context
 from app.services.file_parser import FileParserError, parse_uploaded_files
 from app.services.groq_service import GroqError, call_groq
@@ -113,7 +114,8 @@ def _save_analysis(user_id: str, analysis_type: str, title: str,
 
 @analyze_bp.route("/code", methods=["POST"])
 @jwt_required
-def analyze_code(current_user):
+def analyze_code():
+    current_user = User.query.get(g.current_user_id)
     groq_key = _get_groq_key()
     if not groq_key:
         return jsonify({"error": "Header X-Groq-Key ausente ou vazio."}), 400
@@ -179,7 +181,8 @@ def analyze_code(current_user):
 
 @analyze_bp.route("/n8n", methods=["POST"])
 @jwt_required
-def analyze_n8n(current_user):
+def analyze_n8n():
+    current_user = User.query.get(g.current_user_id)
     groq_key = _get_groq_key()
     if not groq_key:
         return jsonify({"error": "Header X-Groq-Key ausente ou vazio."}), 400
