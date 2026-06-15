@@ -126,11 +126,14 @@ def call_groq(
                 raise GroqError(
                     "Chave da Groq inválida ou sem permissão.", status_code=401
                 ) from exc
+
+            # 429 (rate limit) → tenta o próximo modelo em vez de travar
             if exc.code == 429:
-                raise GroqError(
+                last_error = GroqError(
                     "Limite de requisições da Groq atingido. Tente novamente em instantes.",
                     status_code=429,
-                ) from exc
+                )
+                continue
 
             # Se o modelo foi descontinuado ou payload grande demais, tenta o próximo
             if exc.code == 400 and "model_decommissioned" in raw:
