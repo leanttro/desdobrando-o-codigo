@@ -1,7 +1,7 @@
 """
 app/__init__.py
 Factory da aplicação Flask.
-Registra todos os blueprints — auth (Etapa 1) + analyze/errors/history/glossary (Etapa 2).
+Registra todos os blueprints — auth (Etapa 1) + analyze/errors/history/glossary (Etapa 2) + interview (Etapa 3).
 """
 
 from __future__ import annotations
@@ -41,6 +41,12 @@ def create_app(config_object: object = Config) -> Flask:
     app.register_blueprint(errors_bp)
     app.register_blueprint(history_bp)
     app.register_blueprint(glossary_bp)
+
+    # -----------------------------------------------------------------------
+    # Blueprints — Etapa 3
+    # -----------------------------------------------------------------------
+    from app.routes.interview import interview_bp
+    app.register_blueprint(interview_bp)
 
     # -----------------------------------------------------------------------
     # Health check
