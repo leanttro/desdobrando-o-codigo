@@ -1,6 +1,7 @@
 """
 routes/errors.py
 POST /errors/identify → identifica causa de um erro, explica e gera fix_prompt
+GET  /errors/<id>     → retorna um erro salvo pelo ID
 """
 
 from __future__ import annotations
@@ -30,6 +31,24 @@ exatamente estas chaves:
 }
 
 Não inclua texto fora do JSON. Não use markdown ao redor do JSON."""
+
+
+@errors_bp.route("/<id>", methods=["GET"])
+@jwt_required
+def get_error(id):
+    user_id = g.current_user_id
+
+    log = ErrorLog.query.filter_by(id=id, user_id=user_id).first()
+    if not log:
+        return jsonify({"error": "Erro não encontrado."}), 404
+
+    return jsonify({
+        "id": str(log.id),
+        "error_input": log.error_input,
+        "explanation": log.explanation,
+        "fix_prompt": log.fix_prompt,
+        "created_at": log.created_at.isoformat(),
+    }), 200
 
 
 @errors_bp.route("/identify", methods=["POST"])
