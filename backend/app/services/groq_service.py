@@ -10,7 +10,7 @@ import urllib.error
 from typing import Any
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama3-70b-8192"
+GROQ_MODEL = "llama-3.3-70b-versatile"
 MAX_TOKENS = 4096
 
 
