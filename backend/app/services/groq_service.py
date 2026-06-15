@@ -88,14 +88,15 @@ def call_groq(
 
     last_error: GroqError | None = None
 
-    for model in GROQ_MODELS:
+    for model_name, tpm_limit in GROQ_MODELS:
+        truncated_message = _truncate_for_budget(user_message, system_prompt, tpm_limit)
         payload: dict[str, Any] = {
-            "model": model,
+            "model": model_name,
             "max_tokens": MAX_TOKENS,
             "temperature": temperature,
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message},
+                {"role": "user", "content": truncated_message},
             ],
         }
         if response_format == "json_object":
@@ -131,8 +132,14 @@ def call_groq(
                     status_code=429,
                 ) from exc
 
-            # Se o modelo foi descontinuado, tenta o próximo da lista
+            # Se o modelo foi descontinuado ou payload grande demais, tenta o próximo
             if exc.code == 400 and "model_decommissioned" in raw:
+                last_error = GroqError(
+                    f"Erro da API Groq ({exc.code}): {raw[:300]}", status_code=502
+                )
+                continue
+
+            if exc.code == 413:
                 last_error = GroqError(
                     f"Erro da API Groq ({exc.code}): {raw[:300]}", status_code=502
                 )
