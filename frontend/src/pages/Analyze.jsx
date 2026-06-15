@@ -6,12 +6,36 @@ import ResultPanel from '../components/Analyze/ResultPanel';
 import './Analyze.css';
 
 const TOTAL_STEPS = 6;
+const STORAGE_KEY = 'lastAnalysis';
+
+// Recupera estado salvo do sessionStorage (só dura enquanto o browser está aberto)
+function loadSaved() {
+  try {
+    return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
 
 function Analyze() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [results, setResults] = useState({});
+  const saved = loadSaved();
+
+  const [currentStep, setCurrentStep] = useState(saved.currentStep || 0);
+  const [results, setResults] = useState(saved.results || {});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Salva no sessionStorage sempre que atualiza resultados
+  function persist(newResults, newStep) {
+    try {
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ results: newResults, currentStep: newStep })
+      );
+    } catch {
+      // sessionStorage cheio ou bloqueado — segue sem persistência
+    }
+  }
 
   const handleUpload = async (files) => {
     setLoading(true);
@@ -34,23 +58,27 @@ function Analyze() {
 
       const data = response.data || {};
 
+      let newResults;
       if (data.steps) {
-        setResults(data.steps);
+        newResults = data.steps;
       } else if (data.result) {
-        setResults(data.result);
+        newResults = data.result;
       } else {
-        // Remove id e created_at, passa só o que interessa
         const { id, ...rest } = data;
-        setResults(rest);
+        newResults = rest;
       }
 
+      setResults(newResults);
       setCurrentStep(TOTAL_STEPS);
+      persist(newResults, TOTAL_STEPS); // 💾 salva após análise concluída
+
     } catch (err) {
       const message =
         err.response?.data?.detail ||
         'Não foi possível analisar o código. Tente novamente.';
       setError(message);
       setCurrentStep(0);
+      persist({}, 0); // limpa o storage em caso de erro
     } finally {
       setLoading(false);
     }
