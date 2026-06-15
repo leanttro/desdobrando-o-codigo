@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BACKEND_URL = '/api'
+const BACKEND_URL = '/api/'
 const GROQ_KEY_STORAGE = 'groq_api_key'
 const JWT_STORAGE = 'auth_token'
 
