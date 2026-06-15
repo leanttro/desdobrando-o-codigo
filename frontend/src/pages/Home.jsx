@@ -5,7 +5,7 @@ function Home() {
   return (
     <div className="home">
       <section className="home__hero">
-        <h1 className="home__title">{desdobrando}</h1>
+        <h1 className="home__title">desdobrando</h1>
         <p className="home__subtitle">
           Entenda qualquer código ou workflow do n8n em linguagem simples.
           Faça upload do seu projeto, cole um JSON de automação ou um erro,
