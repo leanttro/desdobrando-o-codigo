@@ -126,15 +126,22 @@ def call_groq(
                 raise GroqError(
                     "Chave da Groq inválida ou sem permissão.", status_code=401
                 ) from exc
+            if exc.code == 429:
+                raise GroqError(
+                    "Limite de requisições da Groq atingido. Tente novamente em instantes.",
+                    status_code=429,
+                ) from exc
 
-            # 429 (rate limit), 413 (payload grande) e 400 model decommissioned
-            # → tenta o próximo modelo da lista em vez de travar
-            if exc.code in (429, 413) or (
-                exc.code == 400 and "model_decommissioned" in raw
-            ):
+            # Se o modelo foi descontinuado ou payload grande demais, tenta o próximo
+            if exc.code == 400 and "model_decommissioned" in raw:
                 last_error = GroqError(
-                    f"Modelo {model_name} indisponível ({exc.code}), tentando próximo...",
-                    status_code=502,
+                    f"Erro da API Groq ({exc.code}): {raw[:300]}", status_code=502
+                )
+                continue
+
+            if exc.code == 413:
+                last_error = GroqError(
+                    f"Erro da API Groq ({exc.code}): {raw[:300]}", status_code=502
                 )
                 continue
 
@@ -147,7 +154,7 @@ def call_groq(
                 f"Falha de conexão com a Groq: {exc.reason}", status_code=503
             ) from exc
 
-    # Todos os modelos da lista falharam
+    # Todos os modelos da lista falharam por descontinuação
     raise last_error or GroqError(
         "Nenhum modelo disponível na Groq no momento.", status_code=502
     )
