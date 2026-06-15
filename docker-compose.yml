@@ -20,7 +20,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      DATABASE_URL: ${DATABASE_URL}
       SECRET_KEY: ${SECRET_KEY}
       FLASK_ENV: development
     expose:
