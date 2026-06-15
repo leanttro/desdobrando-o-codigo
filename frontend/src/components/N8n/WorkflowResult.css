@@ -1,0 +1,58 @@
+.workflow-result {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.workflow-result__section {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.workflow-result__section h3 {
+  margin: 0 0 0.75rem 0;
+  color: #1e293b;
+}
+
+.workflow-result__section p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.workflow-result__nodes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.workflow-result__node {
+  background-color: #f8fafc;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+}
+
+.workflow-result__node h4 {
+  margin: 0 0 0.35rem 0;
+  color: #2563eb;
+  font-size: 0.95rem;
+}
+
+.workflow-result__node p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.workflow-result__section ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.workflow-result__issue {
+  color: #b45309;
+}
