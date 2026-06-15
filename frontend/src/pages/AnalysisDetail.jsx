@@ -13,6 +13,8 @@ function AnalysisDetail() {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [questionCount, setQuestionCount] = useState(5);
 
   useEffect(() => {
     const fetch = async () => {
@@ -27,6 +29,10 @@ function AnalysisDetail() {
     };
     fetch();
   }, [id]);
+
+  const handleStartInterview = () => {
+    navigate(`/interview/${id}?count=${questionCount}`);
+  };
 
   if (loading) {
     return (
@@ -62,6 +68,15 @@ function AnalysisDetail() {
         <p className="analysis-detail__date">
           {new Date(analysis.created_at).toLocaleString('pt-BR')}
         </p>
+
+        {isCode && (
+          <button
+            className="analysis-detail__interview-btn"
+            onClick={() => setShowModal(true)}
+          >
+            🎯 Simular entrevista
+          </button>
+        )}
       </div>
 
       {isCode && (
@@ -69,6 +84,34 @@ function AnalysisDetail() {
       )}
 
       <ResultPanel results={analysis.result} />
+
+      {showModal && (
+        <div className="interview-modal__overlay" onClick={() => setShowModal(false)}>
+          <div className="interview-modal" onClick={e => e.stopPropagation()}>
+            <h2>Simular entrevista</h2>
+            <p>Quantas perguntas você quer responder?</p>
+            <div className="interview-modal__options">
+              {[3, 5, 10].map(n => (
+                <button
+                  key={n}
+                  className={`interview-modal__option ${questionCount === n ? 'interview-modal__option--active' : ''}`}
+                  onClick={() => setQuestionCount(n)}
+                >
+                  {n} perguntas
+                </button>
+              ))}
+            </div>
+            <div className="interview-modal__actions">
+              <button className="interview-modal__cancel" onClick={() => setShowModal(false)}>
+                Cancelar
+              </button>
+              <button className="interview-modal__start" onClick={handleStartInterview}>
+                Começar →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
