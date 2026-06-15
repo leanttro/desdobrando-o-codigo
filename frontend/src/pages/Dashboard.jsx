@@ -16,8 +16,32 @@ function Dashboard() {
     const fetchHistory = async () => {
       try {
         const response = await api.get('/history');
+
         if (isMounted) {
-          setHistory(response.data || []);
+          const data = response.data || {};
+
+          // Backend retorna { analyses: [...], errors: [...] }
+          // Normaliza tudo num array único com campo "type" e "summary"
+          const analyses = (data.analyses || []).map((a) => ({
+            id: a.id,
+            type: a.type || 'Análise',
+            summary: a.title || a.result || '—',
+            created_at: a.created_at,
+          }));
+
+          const errors = (data.errors || []).map((e) => ({
+            id: e.id,
+            type: 'Erro',
+            summary: e.error_input || e.explanation || '—',
+            created_at: e.created_at,
+          }));
+
+          // Junta e ordena do mais recente pro mais antigo
+          const merged = [...analyses, ...errors].sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at)
+          );
+
+          setHistory(merged);
         }
       } catch {
         if (isMounted) {
