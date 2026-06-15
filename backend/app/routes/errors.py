@@ -1,7 +1,6 @@
 """
 routes/errors.py
 POST /errors/identify → identifica causa de um erro, explica e gera fix_prompt
-GET  /errors/:id      → retorna um erro salvo pelo id
 """
 
 from __future__ import annotations
@@ -101,21 +100,3 @@ def identify_error():
         "fix_prompt": fix_prompt,
         "created_at": log.created_at.isoformat(),
     }), 201
-
-
-@errors_bp.route("/<error_id>", methods=["GET"])
-@jwt_required
-def get_error(error_id):
-    user_id = g.current_user_id
-
-    log = ErrorLog.query.filter_by(id=error_id, user_id=user_id).first()
-    if not log:
-        return jsonify({"error": "Não encontrado."}), 404
-
-    return jsonify({
-        "id": str(log.id),
-        "error_input": log.error_input,
-        "explanation": log.explanation,
-        "fix_prompt": log.fix_prompt,
-        "created_at": log.created_at.isoformat(),
-    }), 200
