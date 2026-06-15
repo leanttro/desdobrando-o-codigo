@@ -5,7 +5,7 @@ GET /history → retorna análises e erros do usuário autenticado
 
 from __future__ import annotations
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, g
 
 from app.models.analysis import Analysis
 from app.models.error_log import ErrorLog
@@ -19,8 +19,7 @@ _MAX_LIMIT = 100
 
 @history_bp.route("", methods=["GET"])
 @jwt_required
-def get_history(current_user):
-    # Parâmetros de paginação opcionais
+def get_history():
     try:
         limit = min(int(request.args.get("limit", _DEFAULT_LIMIT)), _MAX_LIMIT)
         offset = max(int(request.args.get("offset", 0)), 0)
@@ -28,7 +27,7 @@ def get_history(current_user):
         limit = _DEFAULT_LIMIT
         offset = 0
 
-    user_id = str(current_user.id)
+    user_id = g.current_user_id
 
     analyses = (
         Analysis.query
