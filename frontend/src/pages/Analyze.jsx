@@ -36,8 +36,12 @@ function Analyze() {
 
       if (data.steps) {
         setResults(data.steps);
+      } else if (data.result) {
+        setResults(data.result);
       } else {
-        setResults(data);
+        // Remove id e created_at, passa só o que interessa
+        const { id, ...rest } = data;
+        setResults(rest);
       }
 
       setCurrentStep(TOTAL_STEPS);
