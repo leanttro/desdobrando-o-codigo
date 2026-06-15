@@ -9,8 +9,6 @@ from app.utils.jwt_helper import generate_token
 
 auth_bp = Blueprint("auth", __name__)
 
-# ── helpers ────────────────────────────────────────────────────────────────────
-
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 WHATSAPP_RE = re.compile(r"^\+?[\d\s\-()]{7,20}$")
 
@@ -21,7 +19,8 @@ def _validate_register_body(data: dict) -> list[str]:
         errors.append("name é obrigatório.")
     if not EMAIL_RE.match(data.get("email", "")):
         errors.append("email inválido.")
-    if not WHATSAPP_RE.match(data.get("whatsapp", "")):
+    whatsapp = data.get("whatsapp", "")
+    if whatsapp and not WHATSAPP_RE.match(whatsapp):
         errors.append("whatsapp inválido.")
     password = data.get("password", "")
     if len(password) < 8:
@@ -29,15 +28,8 @@ def _validate_register_body(data: dict) -> list[str]:
     return errors
 
 
-# ── routes ─────────────────────────────────────────────────────────────────────
-
 @auth_bp.post("/register")
 def register():
-    """
-    POST /auth/register
-    Body: { name, email, whatsapp, password }
-    Returns: { token, user }
-    """
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "Body JSON inválido ou ausente."}), 400
@@ -53,7 +45,7 @@ def register():
     user = User(
         name=data["name"].strip(),
         email=data["email"].strip().lower(),
-        whatsapp=data["whatsapp"].strip(),
+        whatsapp=data.get("whatsapp", "").strip(),
         password_hash=password_hash,
     )
 
@@ -70,11 +62,6 @@ def register():
 
 @auth_bp.post("/login")
 def login():
-    """
-    POST /auth/login
-    Body: { email, password }
-    Returns: { token, user }
-    """
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "Body JSON inválido ou ausente."}), 400
@@ -87,7 +74,6 @@ def login():
 
     user: User | None = User.query.filter_by(email=email).first()
 
-    # Comparação em tempo constante para evitar timing attacks
     if user is None or not bcrypt.checkpw(
         password.encode("utf-8"), user.password_hash.encode("utf-8")
     ):
