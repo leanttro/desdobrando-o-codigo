@@ -1,11 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../services/api';
 import ErrorInput from '../components/Errors/ErrorInput';
 import ErrorResult from '../components/Errors/ErrorResult';
 import './ErrorHelper.css';
 
+const STORAGE_KEY = 'errorhelper_last_result';
+
 function ErrorHelper() {
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -17,6 +26,7 @@ function ErrorHelper() {
     try {
       const response = await api.post('/errors/identify', { error_input: errorValue });
       setResult(response.data);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(response.data));
     } catch (err) {
       const message =
         err.response?.data?.detail ||
