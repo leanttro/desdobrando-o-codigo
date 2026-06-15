@@ -21,12 +21,31 @@ function RenderValue({ value }) {
     return <p className="result-panel__text">{value}</p>;
   }
 
-  // Array de strings
+  // Array
   if (Array.isArray(value)) {
+    // Array de objetos com pergunta/resposta → Q&A
+    if (value.length > 0 && typeof value[0] === 'object' && value[0] !== null) {
+      return (
+        <div className="result-panel__qa">
+          {value.map((item, i) => {
+            const pergunta = item.pergunta || item.question || item.p || Object.values(item)[0] || '';
+            const resposta = item.resposta || item.answer || item.r || Object.values(item)[1] || '';
+            return (
+              <div key={i} className="qa-item">
+                {pergunta && <p className="qa-item__question">❓ {String(pergunta)}</p>}
+                {resposta && <p className="qa-item__answer">{String(resposta)}</p>}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // Array de strings simples
     return (
       <ul className="result-panel__list">
         {value.map((item, i) => (
-          <li key={i}>{item}</li>
+          <li key={i}>{typeof item === 'string' ? item : JSON.stringify(item)}</li>
         ))}
       </ul>
     );
