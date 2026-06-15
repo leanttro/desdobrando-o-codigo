@@ -1,1 +1,31 @@
-/* Glossary styles */
+.glossary {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.glossary__title {
+  margin: 0;
+  color: #1e293b;
+}
+
+.glossary__subtitle {
+  color: #64748b;
+  margin: 0.25rem 0 1.5rem 0;
+}
+
+.glossary__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.glossary__info {
+  color: #64748b;
+  font-style: italic;
+}
+
+.glossary__error {
+  color: #dc2626;
+}
