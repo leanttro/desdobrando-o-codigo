@@ -1,0 +1,75 @@
+.analysis-detail {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.analysis-detail__loading,
+.analysis-detail__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+  color: #64748b;
+}
+
+.analysis-detail__error button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.analysis-detail__back {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: opacity 0.2s;
+}
+
+.analysis-detail__back:hover {
+  opacity: 0.7;
+}
+
+.analysis-detail__header {
+  margin-bottom: 2rem;
+}
+
+.analysis-detail__type-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 0.6rem;
+}
+
+.analysis-detail__title {
+  margin: 0 0 0.3rem 0;
+  font-size: 1.6rem;
+  color: #1e293b;
+  word-break: break-all;
+}
+
+.analysis-detail__date {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+/* Cole isso no Dashboard.css também */
+/* .dashboard__history-item--clickable */
