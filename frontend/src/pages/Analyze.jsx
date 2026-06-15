@@ -64,7 +64,7 @@ function Analyze() {
         🔒 Sua chave API nunca sai do seu navegador e não é armazenada por nós.
       </div>
 
-      <UploadZone onUpload={handleUpload} loading={loading} />
+      <UploadZone onSubmit={handleUpload} loading={loading} />
 
       {error && <p className="analyze__error">{error}</p>}
 
