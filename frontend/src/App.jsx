@@ -9,6 +9,7 @@ import N8nAnalyze from './pages/N8nAnalyze'
 import ErrorHelper from './pages/ErrorHelper'
 import Glossary from './pages/Glossary'
 import AnalysisDetail from './pages/AnalysisDetail'
+import ErrorDetail from './pages/ErrorDetail'
 import Login from './components/Auth/Login'
 import Register from './components/Auth/Register'
 
@@ -36,6 +37,7 @@ function AppRoutes() {
         <Route path="/analyze"        element={<ProtectedRoute><Analyze /></ProtectedRoute>} />
         <Route path="/n8n"            element={<ProtectedRoute><N8nAnalyze /></ProtectedRoute>} />
         <Route path="/errors"         element={<ProtectedRoute><ErrorHelper /></ProtectedRoute>} />
+        <Route path="/errors/:id"     element={<ProtectedRoute><ErrorDetail /></ProtectedRoute>} />
         <Route path="/history/:id"    element={<ProtectedRoute><AnalysisDetail /></ProtectedRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
