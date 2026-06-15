@@ -11,9 +11,6 @@ from typing import Any
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-# Lista de modelos a tentar, em ordem de preferência, com o limite de
-# tokens por minuto (TPM) de cada um no tier gratuito ("on_demand").
-# Esses valores podem mudar — confira em https://console.groq.com/settings/limits
 GROQ_MODELS: list[tuple[str, int]] = [
     ("llama-3.3-70b-versatile", 12_000),
     ("llama-3.1-8b-instant", 20_000),
@@ -22,24 +19,19 @@ GROQ_MODELS: list[tuple[str, int]] = [
 ]
 MAX_TOKENS = 4096
 
-# Margem de segurança e estimativa de chars-por-token usada para
-# truncar o conteúdo do usuário antes de enviar à Groq.
 _SAFETY_MARGIN_TOKENS = 500
 _CHARS_PER_TOKEN_ESTIMATE = 3.0
 
 
 def _estimate_tokens(text: str) -> int:
-    """Estimativa grosseira de tokens a partir do tamanho do texto."""
     return int(len(text) / _CHARS_PER_TOKEN_ESTIMATE) + 1
 
 
 def _truncate_for_budget(text: str, system_prompt: str, tpm_limit: int) -> str:
-    """Trunca `text` para caber no orçamento de tokens do modelo."""
     overhead = _estimate_tokens(system_prompt) + MAX_TOKENS + _SAFETY_MARGIN_TOKENS
     budget_tokens = tpm_limit - overhead
 
     if budget_tokens <= 0:
-        # Nem o system prompt + resposta cabem — não há o que enviar.
         return ""
 
     budget_chars = int(budget_tokens * _CHARS_PER_TOKEN_ESTIMATE)
@@ -55,8 +47,6 @@ def _truncate_for_budget(text: str, system_prompt: str, tpm_limit: int) -> str:
 
 
 class GroqError(Exception):
-    """Erros originados da API da Groq."""
-
     def __init__(self, message: str, status_code: int = 500):
         super().__init__(message)
         self.status_code = status_code
@@ -68,21 +58,8 @@ def call_groq(
     user_message: str,
     groq_key: str,
     temperature: float = 0.3,
-    response_format: str | None = None,  # "json_object" para respostas estruturadas
+    response_format: str | None = None,
 ) -> str:
-    """
-    Faz uma chamada à API da Groq e retorna o texto da resposta.
-
-    Args:
-        system_prompt: Instrução de papel + contexto do usuário.
-        user_message:  Conteúdo a ser analisado.
-        groq_key:      Chave passada no header X-Groq-Key — usada aqui e descartada.
-        temperature:   Criatividade da resposta (padrão baixo para análises técnicas).
-        response_format: Se "json_object", força resposta JSON.
-
-    Raises:
-        GroqError: 401 chave inválida, 429 rate limit, outros erros HTTP.
-    """
     if not groq_key or not groq_key.strip():
         raise GroqError("X-Groq-Key ausente ou vazio.", status_code=400)
 
@@ -126,22 +103,14 @@ def call_groq(
                 raise GroqError(
                     "Chave da Groq inválida ou sem permissão.", status_code=401
                 ) from exc
-            if exc.code == 429:
-                raise GroqError(
-                    "Limite de requisições da Groq atingido. Tente novamente em instantes.",
-                    status_code=429,
-                ) from exc
 
-            # Se o modelo foi descontinuado ou payload grande demais, tenta o próximo
-            if exc.code == 400 and "model_decommissioned" in raw:
+            # 429, 400 (model decommissioned) e 413 → tenta próximo modelo
+            if exc.code in (429, 413) or (
+                exc.code == 400 and "model_decommissioned" in raw
+            ):
                 last_error = GroqError(
-                    f"Erro da API Groq ({exc.code}): {raw[:300]}", status_code=502
-                )
-                continue
-
-            if exc.code == 413:
-                last_error = GroqError(
-                    f"Erro da API Groq ({exc.code}): {raw[:300]}", status_code=502
+                    f"Modelo {model_name} indisponível ({exc.code}), tentando próximo...",
+                    status_code=502,
                 )
                 continue
 
@@ -154,7 +123,7 @@ def call_groq(
                 f"Falha de conexão com a Groq: {exc.reason}", status_code=503
             ) from exc
 
-    # Todos os modelos da lista falharam por descontinuação
     raise last_error or GroqError(
-        "Nenhum modelo disponível na Groq no momento.", status_code=502
+        "Nenhum modelo disponível na Groq no momento. Tente novamente em instantes.",
+        status_code=502,
     )
