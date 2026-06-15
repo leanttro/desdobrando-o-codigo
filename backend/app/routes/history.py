@@ -1,6 +1,7 @@
 """
 routes/history.py
-GET /history → retorna análises e erros do usuário autenticado
+GET /history         → lista análises e erros do usuário autenticado
+GET /history/<id>    → retorna uma análise específica pelo ID
 """
 
 from __future__ import annotations
@@ -68,4 +69,27 @@ def get_history():
             }
             for e in errors
         ],
+    }), 200
+
+
+@history_bp.route("/<string:analysis_id>", methods=["GET"])
+@jwt_required
+def get_analysis(analysis_id):
+    """Retorna uma análise específica — só se pertencer ao usuário logado."""
+    user_id = g.current_user_id
+
+    analysis = Analysis.query.filter_by(
+        id=analysis_id,
+        user_id=user_id,
+    ).first()
+
+    if not analysis:
+        return jsonify({"error": "Análise não encontrada."}), 404
+
+    return jsonify({
+        "id": str(analysis.id),
+        "type": analysis.type,
+        "title": analysis.title,
+        "result": analysis.result,
+        "created_at": analysis.created_at.isoformat(),
     }), 200
