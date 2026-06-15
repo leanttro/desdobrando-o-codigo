@@ -26,6 +26,7 @@ function Dashboard() {
             type: a.type === 'n8n' ? 'n8n' : 'Código',
             summary: a.title || '—',
             created_at: a.created_at,
+            isError: false,
           }));
 
           const errors = (data.errors || []).map((e) => ({
@@ -58,7 +59,9 @@ function Dashboard() {
   }, []);
 
   const handleItemClick = (item) => {
-    if (!item.isError) {
+    if (item.isError) {
+      navigate(`/errors/${item.id}`);
+    } else {
       navigate(`/history/${item.id}`);
     }
   };
@@ -106,7 +109,7 @@ function Dashboard() {
             {history.map((item) => (
               <li
                 key={item.id}
-                className={`dashboard__history-item${!item.isError ? ' dashboard__history-item--clickable' : ''}`}
+                className="dashboard__history-item dashboard__history-item--clickable"
                 onClick={() => handleItemClick(item)}
               >
                 <div>
@@ -119,9 +122,7 @@ function Dashboard() {
                       {new Date(item.created_at).toLocaleString('pt-BR')}
                     </span>
                   )}
-                  {!item.isError && (
-                    <span className="dashboard__history-arrow">→</span>
-                  )}
+                  <span className="dashboard__history-arrow">→</span>
                 </div>
               </li>
             ))}
