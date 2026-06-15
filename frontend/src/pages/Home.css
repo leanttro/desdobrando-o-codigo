@@ -1,0 +1,84 @@
+.home {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.home__hero {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.home__title {
+  font-size: 2.5rem;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.home__subtitle {
+  font-size: 1.1rem;
+  color: #475569;
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
+  line-height: 1.7;
+}
+
+.home__actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.home__button {
+  padding: 0.75rem 1.75rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.home__button--primary {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+.home__button--primary:hover {
+  background-color: #1d4ed8;
+}
+
+.home__button--secondary {
+  background-color: #fff;
+  color: #2563eb;
+  border: 1px solid #2563eb;
+}
+
+.home__button--secondary:hover {
+  background-color: #eff6ff;
+}
+
+.home__features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-top: 3rem;
+}
+
+.home__feature {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.home__feature h3 {
+  margin: 0 0 0.5rem 0;
+  color: #2563eb;
+}
+
+.home__feature p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}

@@ -1,0 +1,29 @@
+.analyze {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.analyze__title {
+  margin: 0;
+  color: #1e293b;
+}
+
+.analyze__subtitle {
+  color: #64748b;
+  margin: 0.25rem 0 1.5rem 0;
+}
+
+.analyze__notice {
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-size: 0.85rem;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.analyze__error {
+  color: #dc2626;
+  margin-top: 1rem;
+}
