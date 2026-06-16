@@ -36,7 +36,7 @@ function Home() {
       <section className="home__features">
         <div className="home__feature">
           <h3>📂 Desdobrar código</h3>
-          <p>Envie seus arquivos ou um zip e receba uma explicação completa do projeto em 6 etapas — estrutura, dependências, lógica, riscos e deploy.</p>
+          <p>Envie arquivos, um .zip ou cole o link de um repositório do GitHub e receba uma explicação completa do projeto em 6 etapas — estrutura, dependências, lógica, riscos e deploy.</p>
         </div>
         <div className="home__feature">
           <h3>⚡ Desdobrar workflows n8n</h3>
