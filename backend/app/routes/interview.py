@@ -3,7 +3,8 @@ routes/interview.py
 POST /interview/generate          → gera perguntas baseadas numa análise existente
 POST /interview/evaluate          → avalia a resposta do usuário a uma pergunta
 POST /interview/save              → salva a sessão completa ao terminar
-GET  /interview/history/<id>      → lista sessões salvas de uma análise
+GET  /interview/history           → lista TODOS os simulados do usuário (Dashboard)
+GET  /interview/history/<id>      → lista sessões salvas de uma análise específica
 """
 
 from __future__ import annotations
@@ -256,7 +257,24 @@ def save_session():
 
 
 # ---------------------------------------------------------------------------
-# GET /interview/history/<analysis_id>
+# GET /interview/history   ← NOVO: todos os simulados do usuário (pro Dashboard)
+# ---------------------------------------------------------------------------
+
+@interview_bp.route("/history", methods=["GET"])
+@jwt_required
+def get_all_history():
+    sessions = (
+        InterviewSession.query
+        .filter_by(user_id=g.current_user_id)
+        .order_by(InterviewSession.created_at.desc())
+        .all()
+    )
+
+    return jsonify({"sessions": [s.to_dict() for s in sessions]}), 200
+
+
+# ---------------------------------------------------------------------------
+# GET /interview/history/<analysis_id>   ← original: simulados de uma análise
 # ---------------------------------------------------------------------------
 
 @interview_bp.route("/history/<analysis_id>", methods=["GET"])
