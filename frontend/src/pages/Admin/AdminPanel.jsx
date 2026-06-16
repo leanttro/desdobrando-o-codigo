@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { getMetrics, getUsers, getUserDetail, deleteUser, toggleBlockUser } from '../../services/adminApi'
+import { getMetrics, getUsers, getUserDetail, deleteUser, toggleBlockUser, togglePlatformKey } from '../../services/adminApi'
 
 // ── Ícones inline (sem dependência extra) ───────────────
 const Icon = {
@@ -14,6 +14,7 @@ const Icon = {
   chevron:  () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>,
   back:     () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>,
   shield:   () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  key:      () => <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>,
 }
 
 // ── Utilitários ─────────────────────────────────────────
@@ -223,6 +224,15 @@ export default function AdminPanel() {
     })
   }, [fetchUsers, pagination.page])
 
+  const handlePlatformKey = useCallback(async (user) => {
+    try {
+      await togglePlatformKey(user.id)
+      fetchUsers(pagination.page)
+    } catch (e) {
+      setError(e?.response?.data?.error || 'Erro ao atualizar chave da plataforma.')
+    }
+  }, [fetchUsers, pagination.page])
+
   // ── Render ──
   return (
     <div className="page-wrapper">
@@ -284,7 +294,7 @@ export default function AdminPanel() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                    {['Nome', 'E-mail', 'WhatsApp', 'Cadastro', 'Admin', 'Ações'].map(h => (
+                    {['Nome', 'E-mail', 'WhatsApp', 'Cadastro', 'Admin', 'Chave Plataforma', 'Ações'].map(h => (
                       <th key={h} style={{
                         padding: '10px 16px', textAlign: 'left',
                         color: 'var(--text-muted)', fontWeight: 500,
@@ -311,6 +321,23 @@ export default function AdminPanel() {
                         {u.is_admin
                           ? <span className="badge badge-purple">Admin</span>
                           : <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>—</span>}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          title={u.uses_platform_key ? 'Usando chave da plataforma — clique para desativar' : 'Usando chave própria — clique para ativar chave da plataforma'}
+                          onClick={() => handlePlatformKey(u)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            padding: '4px 10px', borderRadius: 999,
+                            background: u.uses_platform_key ? '#10B98118' : 'transparent',
+                            border: `1px solid ${u.uses_platform_key ? '#10B98144' : 'var(--border)'}`,
+                            color: u.uses_platform_key ? '#10B981' : 'var(--text-dim)',
+                          }}
+                        >
+                          <Icon.key />
+                          {u.uses_platform_key ? 'Ativada' : 'Desativada'}
+                        </button>
                       </td>
                       <td style={{ padding: '12px 16px' }}>
                         <div style={{ display: 'flex', gap: 6 }}>
