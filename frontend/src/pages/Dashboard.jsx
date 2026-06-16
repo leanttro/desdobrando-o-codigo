@@ -49,7 +49,7 @@ function Dashboard() {
                 id: s.analysis_id,
                 sessionId: s.id,
                 type: 'Simulado',
-                summary: `Simulado — média ${s.average_score?.toFixed(1) ?? '?'}/10`,
+                summary: `Simulado — média ${s.score_avg?.toFixed(1) ?? '?'}/10`,
                 created_at: s.created_at,
                 isError: false,
                 isInterview: true,
@@ -76,7 +76,7 @@ function Dashboard() {
     if (item.isError) {
       navigate(`/errors/${item.id}`);
     } else if (item.isInterview) {
-      navigate(`/history/${item.id}`); // abre o AnalysisDetail que já mostra os simulados
+      navigate(`/history/${item.id}#simulados`);
     } else {
       navigate(`/history/${item.id}`);
     }
