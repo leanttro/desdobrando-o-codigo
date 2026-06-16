@@ -1,10 +1,31 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import UploadZone from '../components/Analyze/UploadZone';
 import ProgressSteps from '../components/Analyze/ProgressSteps';
 import ResultPanel from '../components/Analyze/ResultPanel';
 import './Analyze.css';
+
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+function buildResultContext(results) {
+  if (!results || !Object.keys(results).length) return '';
+  const parts = [];
+  if (results.step_2) parts.push(`Linguagens e estrutura: ${results.step_2}`);
+  if (results.step_3) parts.push(`Visão geral: ${results.step_3}`);
+  if (results.step_4) parts.push(`Bibliotecas e dependências: ${results.step_4}`);
+  if (results.step_5) {
+    const risks = results.step_5;
+    if (typeof risks === 'object') {
+      const all = [...(risks.alto||[]), ...(risks.medio||[]), ...(risks.baixo||[])];
+      if (all.length) parts.push(`Riscos: ${all.join('; ')}`);
+    }
+  }
+  if (results.step_6) parts.push(`Deploy: ${results.step_6}`);
+  return parts.join('\n\n');
+}
+
 
 const TOTAL_STEPS = 7;
 const STORAGE_KEY = 'lastAnalysis';
@@ -74,12 +95,75 @@ async function fetchFileContent(owner, repo, path) {
 function Analyze() {
   const saved = loadSaved();
   const navigate = useNavigate();
+  const { groqKey } = useAuth();
 
   const [currentStep, setCurrentStep] = useState(saved.currentStep || 0);
   const [results, setResults] = useState(saved.results || {});
   const [analysisId, setAnalysisId] = useState(saved.analysisId || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Chat
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { role: 'assistant', content: 'Olá! Pode me perguntar qualquer coisa sobre essa análise — termos, decisões técnicas, bibliotecas usadas, riscos... 😊' }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatBottomRef = useRef(null);
+
+  const handleSendChat = async () => {
+    const text = chatInput.trim();
+    if (!text || chatLoading) return;
+    if (!groqKey) {
+      setChatMessages(prev => [...prev, { role: 'assistant', content: '⚠️ Configure sua chave Groq nas configurações para usar o chat.' }]);
+      return;
+    }
+
+    const userMsg = { role: 'user', content: text };
+    setChatMessages(prev => [...prev, userMsg]);
+    setChatInput('');
+    setChatLoading(true);
+
+    const context = buildResultContext(results);
+    const systemPrompt = `Você é um assistente especializado em desenvolvimento de software que ajuda o usuário a entender a análise do projeto dele.
+
+${context ? `Contexto do projeto analisado:\n${context}` : 'A análise ainda está sendo gerada ou não foi iniciada.'}
+
+Responda de forma clara e didática. Quando mencionar termos técnicos, explique como eles se aplicam especificamente a esse projeto. Seja objetivo e amigável. Responda em português.`;
+
+    const history = chatMessages
+      .slice(1)
+      .map(m => ({ role: m.role, content: m.content }));
+
+    try {
+      const res = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${groqKey}`,
+        },
+        body: JSON.stringify({
+          model: 'llama3-8b-8192',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...history,
+            { role: 'user', content: text },
+          ],
+          max_tokens: 600,
+          temperature: 0.7,
+        }),
+      });
+      const data = await res.json();
+      const reply = data.choices?.[0]?.message?.content || 'Não consegui gerar uma resposta. Tente novamente.';
+      setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+    } catch {
+      setChatMessages(prev => [...prev, { role: 'assistant', content: '❌ Erro ao conectar com o Groq. Verifique sua chave.' }]);
+    } finally {
+      setChatLoading(false);
+      setTimeout(() => chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    }
+  };
 
   // Modo: 'upload' ou 'github'
   const [mode, setMode] = useState('upload');
@@ -369,6 +453,56 @@ function Analyze() {
       )}
 
       {currentStep > 0 && <ResultPanel results={results} />}
+
+      {/* ── Chatbot flutuante (só aparece quando há análise) ── */}
+      {currentStep >= 6 && (
+        <>
+          {chatOpen && (
+            <div className="analysis-chat__window">
+              <div className="analysis-chat__header">
+                <span>💬 Tirar dúvidas sobre a análise</span>
+                <button className="analysis-chat__close" onClick={() => setChatOpen(false)}>✕</button>
+              </div>
+              <div className="analysis-chat__messages">
+                {chatMessages.map((m, i) => (
+                  <div key={i} className={`analysis-chat__msg analysis-chat__msg--${m.role}`}>
+                    {m.content}
+                  </div>
+                ))}
+                {chatLoading && (
+                  <div className="analysis-chat__msg analysis-chat__msg--assistant analysis-chat__msg--loading">
+                    <span className="chat-dot" /><span className="chat-dot" /><span className="chat-dot" />
+                  </div>
+                )}
+                <div ref={chatBottomRef} />
+              </div>
+              <div className="analysis-chat__input-row">
+                <input
+                  className="analysis-chat__input"
+                  placeholder="O que é Axios? Como funciona o deploy?..."
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSendChat()}
+                  disabled={chatLoading}
+                />
+                <button
+                  className="analysis-chat__send"
+                  onClick={handleSendChat}
+                  disabled={!chatInput.trim() || chatLoading}
+                >→</button>
+              </div>
+            </div>
+          )}
+
+          <button
+            className="analysis-chat__fab"
+            onClick={() => setChatOpen(o => !o)}
+            title="Tirar dúvidas sobre a análise"
+          >
+            {chatOpen ? '✕' : '💬'}
+          </button>
+        </>
+      )}
     </div>
   );
 }
