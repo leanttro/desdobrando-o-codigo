@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import ResultPanel from '../components/Analyze/ResultPanel';
@@ -15,6 +15,13 @@ function AnalysisDetail() {
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [questionCount, setQuestionCount] = useState(5);
+  const simuladosRef = useRef(null);
+
+  useEffect(() => {
+    if (window.location.hash === '#simulados' && simuladosRef.current) {
+      simuladosRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [analysis]);
 
   useEffect(() => {
     const fetch = async () => {
@@ -84,6 +91,8 @@ function AnalysisDetail() {
       )}
 
       <ResultPanel results={analysis.result} />
+
+      <div ref={simuladosRef} id="simulados" />
 
       {showModal && (
         <div className="interview-modal__overlay" onClick={() => setShowModal(false)}>
