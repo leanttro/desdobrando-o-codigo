@@ -145,7 +145,7 @@ Responda de forma clara e didática. Quando mencionar termos técnicos, explique
           'Authorization': `Bearer ${key}`,
         },
         body: JSON.stringify({
-          model: 'llama3-8b-8192',
+          model: 'llama-3.3-70b-versatile',
           messages: [
             { role: 'system', content: systemPrompt },
             ...history,
