@@ -1,14 +1,16 @@
 import React, { useState } from 'react'
-import { saveGroqKey, hasGroqKey, clearGroqKey } from '../../services/api'
+import { hasGroqKey, clearGroqKey } from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 
 export default function ApiKeyModal({ onClose, required = false }) {
+  const { updateGroqKey } = useAuth()
   const [key, setKey] = useState('')
   const [saved, setSaved] = useState(false)
   const [step, setStep] = useState(hasGroqKey() ? 'manage' : 'info')
 
   const handleSave = () => {
     if (!key.trim()) return
-    saveGroqKey(key.trim())
+    updateGroqKey(key.trim())
     setSaved(true)
     setTimeout(() => {
       setSaved(false)
@@ -18,6 +20,7 @@ export default function ApiKeyModal({ onClose, required = false }) {
 
   const handleRemove = () => {
     clearGroqKey()
+    updateGroqKey('')
     setStep('info')
     setKey('')
   }
