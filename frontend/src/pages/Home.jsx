@@ -1,47 +1,117 @@
-import { Link } from 'react-router-dom';
-import './Home.css';
-
-function Home() {
-  return (
-    <div className="home">
-      <section className="home__hero">
-        <h1 className="home__title">{'{'}<span>desdobrando</span>{'}'}</h1>
-        <p className="home__subtitle">
-          Entenda qualquer código ou workflow do n8n em linguagem simples.
-          Faça upload do seu projeto, cole um JSON de automação ou um erro,
-          e deixe a IA explicar tudo passo a passo.
-        </p>
-
-        <div className="home__actions">
-          <Link to="/login" className="home__button home__button--primary">
-            Entrar
-          </Link>
-          <Link to="/register" className="home__button home__button--secondary">
-            Criar conta
-          </Link>
-        </div>
-      </section>
-
-      <section className="home__features">
-        <div className="home__feature">
-          <h3>Analisar código</h3>
-          <p>Envie seus arquivos ou um zip e receba uma explicação completa do projeto, em 6 etapas.</p>
-        </div>
-        <div className="home__feature">
-          <h3>Analisar workflow n8n</h3>
-          <p>Cole o JSON exportado do n8n e entenda o que cada nó faz e como eles se conectam.</p>
-        </div>
-        <div className="home__feature">
-          <h3>Identificar erros</h3>
-          <p>Cole uma mensagem de erro e receba uma explicação clara, além de um prompt de correção.</p>
-        </div>
-        <div className="home__feature">
-          <h3>Glossário</h3>
-          <p>Consulte termos técnicos explicados com analogias simples do dia a dia.</p>
-        </div>
-      </section>
-    </div>
-  );
+.home {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
 }
 
-export default Home;
+.home__hero {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.home__title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #fff 30%, var(--purple-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.15;
+}
+
+.home__subtitle {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto 2.5rem auto;
+  line-height: 1.7;
+}
+
+.home__actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.home__button {
+  padding: 0.75rem 1.75rem;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.home__button--primary {
+  background-color: var(--purple);
+  color: #fff;
+  border: 1px solid transparent;
+}
+
+.home__button--primary:hover {
+  background-color: #6d28d9;
+  box-shadow: var(--glow);
+}
+
+.home__button--secondary {
+  background-color: transparent;
+  color: var(--purple-light);
+  border: 1px solid var(--purple);
+}
+
+.home__button--secondary:hover {
+  background-color: #7C3AED22;
+  box-shadow: var(--glow);
+}
+
+.home__features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-top: 3rem;
+}
+
+.home__feature {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.home__feature:hover {
+  border-color: var(--purple);
+  box-shadow: var(--glow);
+}
+
+.home__feature h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--purple-light);
+}
+
+.home__feature p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.home__tagline {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--purple-light);
+  margin: 0 auto 1.25rem auto;
+}
+
+.home__slogan {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin: 1.75rem auto 2.5rem auto;
+  max-width: 480px;
+  line-height: 1.7;
+}
+
+.home__slogan strong {
+  color: var(--text);
+}
