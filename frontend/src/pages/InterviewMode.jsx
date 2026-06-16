@@ -28,6 +28,7 @@ function InterviewMode() {
   const [results, setResults] = useState([]);
   const [error, setError] = useState('');
   const [analysis, setAnalysis] = useState(null);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -51,6 +52,19 @@ function InterviewMode() {
     };
     load();
   }, [id, questionCount]);
+
+  // Salva automaticamente quando a sessão termina
+  useEffect(() => {
+    if (step === STEPS.DONE && results.length > 0 && !saved) {
+      setSaved(true);
+      api.post('/interview/save', {
+        analysis_id: id,
+        results,
+      }).catch(() => {
+        // falha silenciosa — não atrapalha o usuário
+      });
+    }
+  }, [step, results, saved, id]);
 
   const handleSubmitAnswer = async () => {
     if (!answer.trim()) return;
@@ -118,6 +132,9 @@ function InterviewMode() {
           <div className="interview__avg-score" style={{ color: scoreColor(parseFloat(avg)) }}>
             Média geral: {avg}/10
           </div>
+        )}
+        {saved && (
+          <p className="interview__saved-msg">✓ Simulado salvo no histórico</p>
         )}
         {error && <p className="interview__error">{error}</p>}
         <div className="interview__results">
