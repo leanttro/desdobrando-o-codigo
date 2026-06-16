@@ -292,3 +292,21 @@ def get_history(analysis_id):
     )
 
     return jsonify([s.to_dict() for s in sessions]), 200
+
+
+# ---------------------------------------------------------------------------
+# GET /interview/session/<session_id>   ← detalhe de um simulado salvo
+# ---------------------------------------------------------------------------
+
+@interview_bp.route("/session/<session_id>", methods=["GET"])
+@jwt_required
+def get_session(session_id):
+    session = InterviewSession.query.filter_by(
+        id=session_id,
+        user_id=g.current_user_id,
+    ).first()
+
+    if not session:
+        return jsonify({"error": "Simulado não encontrado."}), 404
+
+    return jsonify(session.to_dict()), 200
