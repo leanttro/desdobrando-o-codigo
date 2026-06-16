@@ -14,6 +14,8 @@ import InterviewMode from './pages/InterviewMode'
 import InterviewDetail from './pages/InterviewDetail'
 import Login from './components/Auth/Login'
 import Register from './components/Auth/Register'
+import AdminRoute from './components/Shared/AdminRoute'
+import AdminPanel from './pages/Admin/AdminPanel'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -43,6 +45,8 @@ function AppRoutes() {
         <Route path="/history/:id"    element={<ProtectedRoute><AnalysisDetail /></ProtectedRoute>} />
         <Route path="/interview/:id"  element={<ProtectedRoute><InterviewMode /></ProtectedRoute>} />
         <Route path="/interview/result/:sessionId" element={<ProtectedRoute><InterviewDetail /></ProtectedRoute>} />
+
+        <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
