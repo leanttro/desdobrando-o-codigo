@@ -115,7 +115,8 @@ function Analyze() {
   const handleSendChat = async () => {
     const text = chatInput.trim();
     if (!text || chatLoading) return;
-    if (!groqKey) {
+    const key = groqKey?.trim();
+    if (!key) {
       setChatMessages(prev => [...prev, { role: 'assistant', content: '⚠️ Configure sua chave Groq nas configurações para usar o chat.' }]);
       return;
     }
@@ -141,7 +142,7 @@ Responda de forma clara e didática. Quando mencionar termos técnicos, explique
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${groqKey}`,
+          'Authorization': `Bearer ${key}`,
         },
         body: JSON.stringify({
           model: 'llama3-8b-8192',
