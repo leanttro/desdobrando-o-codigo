@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import UploadZone from '../components/Analyze/UploadZone';
 import ProgressSteps from '../components/Analyze/ProgressSteps';
 import ResultPanel from '../components/Analyze/ResultPanel';
 import './Analyze.css';
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 const STORAGE_KEY = 'lastAnalysis';
 
 function loadSaved() {
@@ -72,9 +73,11 @@ async function fetchFileContent(owner, repo, path) {
 
 function Analyze() {
   const saved = loadSaved();
+  const navigate = useNavigate();
 
   const [currentStep, setCurrentStep] = useState(saved.currentStep || 0);
   const [results, setResults] = useState(saved.results || {});
+  const [analysisId, setAnalysisId] = useState(saved.analysisId || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -83,17 +86,17 @@ function Analyze() {
 
   // GitHub
   const [repoUrl, setRepoUrl] = useState('');
-  const [repoInfo, setRepoInfo] = useState(null);   // { owner, repo }
-  const [repoFiles, setRepoFiles] = useState([]);   // lista de paths
-  const [selected, setSelected] = useState([]);     // paths selecionados
+  const [repoInfo, setRepoInfo] = useState(null);
+  const [repoFiles, setRepoFiles] = useState([]);
+  const [selected, setSelected] = useState([]);
   const [treeLoading, setTreeLoading] = useState(false);
   const [treeError, setTreeError] = useState('');
 
-  function persist(newResults, newStep) {
+  function persist(newResults, newStep, newId) {
     try {
       sessionStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ results: newResults, currentStep: newStep })
+        JSON.stringify({ results: newResults, currentStep: newStep, analysisId: newId })
       );
     } catch {}
   }
@@ -103,6 +106,7 @@ function Analyze() {
     setLoading(true);
     setError('');
     setResults({});
+    setAnalysisId(null);
     setCurrentStep(1);
 
     try {
@@ -118,26 +122,28 @@ function Analyze() {
       });
 
       const data = response.data || {};
+      const id = data.id || null;
       let newResults;
       if (data.steps) {
         newResults = data.steps;
       } else if (data.result) {
         newResults = data.result;
       } else {
-        const { id, ...rest } = data;
+        const { id: _id, ...rest } = data;
         newResults = rest;
       }
 
       setResults(newResults);
-      setCurrentStep(TOTAL_STEPS);
-      persist(newResults, TOTAL_STEPS);
+      setAnalysisId(id);
+      setCurrentStep(6); // etapa 6 = análise concluída; 7 = simulado (opcional)
+      persist(newResults, 6, id);
     } catch (err) {
       const message =
         err.response?.data?.detail ||
         'Não foi possível analisar o código. Tente novamente.';
       setError(message);
       setCurrentStep(0);
-      persist({}, 0);
+      persist({}, 0, null);
     } finally {
       setLoading(false);
     }
@@ -159,7 +165,7 @@ function Analyze() {
     try {
       const files = await fetchRepoTree(parsed.owner, parsed.repo);
       setRepoFiles(files.map(f => f.path));
-      setSelected(files.map(f => f.path)); // seleciona tudo por padrão
+      setSelected(files.map(f => f.path));
     } catch (err) {
       setTreeError(err.message || 'Erro ao buscar repositório.');
     } finally {
@@ -183,10 +189,10 @@ function Analyze() {
     setLoading(true);
     setError('');
     setResults({});
+    setAnalysisId(null);
     setCurrentStep(1);
 
     try {
-      // Busca conteúdo dos arquivos selecionados (máx 20)
       const toFetch = selected.slice(0, 20);
       const contents = await Promise.all(
         toFetch.map(async (path) => {
@@ -197,7 +203,6 @@ function Analyze() {
 
       const combined = contents.filter(Boolean).join('\n\n');
 
-      // Monta como arquivo de texto e manda pro /analyze/code existente
       const blob = new Blob([combined], { type: 'text/plain' });
       const file = new File([blob], `${repoInfo.repo}.txt`, { type: 'text/plain' });
 
@@ -209,28 +214,36 @@ function Analyze() {
       });
 
       const data = response.data || {};
+      const id = data.id || null;
       let newResults;
       if (data.steps) {
         newResults = data.steps;
       } else if (data.result) {
         newResults = data.result;
       } else {
-        const { id, ...rest } = data;
+        const { id: _id, ...rest } = data;
         newResults = rest;
       }
 
       setResults(newResults);
-      setCurrentStep(TOTAL_STEPS);
-      persist(newResults, TOTAL_STEPS);
+      setAnalysisId(id);
+      setCurrentStep(6);
+      persist(newResults, 6, id);
     } catch (err) {
       const message =
         err.response?.data?.detail ||
         'Não foi possível analisar o repositório. Tente novamente.';
       setError(message);
       setCurrentStep(0);
-      persist({}, 0);
+      persist({}, 0, null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInterviewClick = () => {
+    if (analysisId) {
+      navigate(`/interview/${analysisId}`);
     }
   };
 
@@ -334,7 +347,25 @@ function Analyze() {
       {error && <p className="analyze__error">{error}</p>}
 
       {currentStep > 0 && (
-        <ProgressSteps currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+        <ProgressSteps
+          currentStep={currentStep}
+          totalSteps={TOTAL_STEPS}
+          interviewDone={currentStep === TOTAL_STEPS}
+          onInterviewClick={analysisId ? handleInterviewClick : undefined}
+        />
+      )}
+
+      {/* Botão de simulado — aparece quando análise termina e ainda não foi feito */}
+      {currentStep === 6 && analysisId && (
+        <div className="analyze__interview-cta">
+          <div>
+            <strong>⚡ Quer se preparar pra defender esse projeto?</strong>
+            <p>Simule uma entrevista técnica baseada no código que você acabou de analisar.</p>
+          </div>
+          <button className="btn-interview" onClick={handleInterviewClick}>
+            Simular entrevista →
+          </button>
+        </div>
       )}
 
       {currentStep > 0 && <ResultPanel results={results} />}
