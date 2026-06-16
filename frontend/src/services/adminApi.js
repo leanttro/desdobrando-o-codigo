@@ -19,3 +19,7 @@ export const deleteUser = (userId) =>
 // PATCH /admin/users/:id/block
 export const toggleBlockUser = (userId) =>
   api.patch(`/admin/users/${userId}/block`).then(r => r.data)
+
+// PATCH /admin/users/:id/platform-key
+export const togglePlatformKey = (userId) =>
+  api.patch(`/admin/users/${userId}/platform-key`).then(r => r.data)
