@@ -16,6 +16,7 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     whatsapp = db.Column(db.String(20), nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text("FALSE"))
     created_at = db.Column(
         db.DateTime(timezone=True),
         nullable=False,
@@ -45,6 +46,18 @@ class User(db.Model):
             "email": self.email,
             "whatsapp": self.whatsapp,
             "created_at": self.created_at.isoformat(),
+        }
+
+    def to_dict_admin(self) -> dict:
+        """Versão completa do to_dict, usada apenas em rotas de admin."""
+        return {
+            "id": str(self.id),
+            "name": self.name,
+            "email": self.email,
+            "whatsapp": self.whatsapp,
+            "is_admin": self.is_admin,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
         }
 
     def __repr__(self) -> str:
