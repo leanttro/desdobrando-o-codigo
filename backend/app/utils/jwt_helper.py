@@ -1,7 +1,7 @@
 import jwt
 from datetime import datetime, timedelta, timezone
 from functools import wraps
-from flask import current_app, request, jsonify
+from flask import current_app, request, jsonify, g
 
 
 def generate_token(user_id: str) -> str:
@@ -31,7 +31,33 @@ def jwt_required(f):
     """
     @wraps(f)
     def decorated(*args, **kwargs):
-        from flask import g
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Token não fornecido ou formato inválido."}), 401
+
+        token = auth_header.split(" ", 1)[1]
+        try:
+            payload = decode_token(token)
+            g.current_user_id = payload["sub"]
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token expirado."}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "Token inválido."}), 401
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def admin_required(f):
+    """
+    Decorator que protege rotas de admin.
+    Exige JWT válido + is_admin = TRUE no banco.
+    Uso: @admin_required (já inclui o jwt_required internamente)
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        from app.models.user import User
 
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
@@ -46,6 +72,11 @@ def jwt_required(f):
         except jwt.InvalidTokenError:
             return jsonify({"error": "Token inválido."}), 401
 
+        user = User.query.get(g.current_user_id)
+        if not user or not user.is_admin:
+            return jsonify({"error": "Acesso negado."}), 403
+
+        g.current_user = user
         return f(*args, **kwargs)
 
     return decorated
