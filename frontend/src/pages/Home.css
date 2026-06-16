@@ -96,3 +96,22 @@
   font-size: 0.9rem;
   line-height: 1.6;
 }
+
+.home__tagline {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--purple-light);
+  margin: 0 auto 1.25rem auto;
+}
+
+.home__slogan {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin: 1.75rem auto 2.5rem auto;
+  max-width: 480px;
+  line-height: 1.7;
+}
+
+.home__slogan strong {
+  color: var(--text);
+}
