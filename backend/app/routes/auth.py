@@ -56,8 +56,9 @@ def register():
         db.session.rollback()
         return jsonify({"error": "Este e-mail já está cadastrado."}), 409
 
+    # Retorna to_dict_admin para incluir is_admin no payload do frontend
     token = generate_token(str(user.id))
-    return jsonify({"token": token, "user": user.to_dict()}), 201
+    return jsonify({"token": token, "user": user.to_dict_admin()}), 201
 
 
 @auth_bp.post("/login")
@@ -79,5 +80,6 @@ def login():
     ):
         return jsonify({"error": "Credenciais inválidas."}), 401
 
+    # Retorna to_dict_admin para incluir is_admin no payload do frontend
     token = generate_token(str(user.id))
-    return jsonify({"token": token, "user": user.to_dict()}), 200
+    return jsonify({"token": token, "user": user.to_dict_admin()}), 200
