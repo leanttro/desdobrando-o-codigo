@@ -92,6 +92,7 @@
   transform: translateY(-1px);
 }
 
+/* Badge padrão */
 .dashboard__history-type {
   font-size: 0.75rem;
   font-weight: 600;
@@ -102,6 +103,13 @@
   border-radius: 20px;
   margin-bottom: 0.4rem;
   display: inline-block;
+}
+
+/* Badge simulado — laranja */
+.dashboard__history-type--interview {
+  background: #f9731622;
+  color: #f97316;
+  border-color: #f9731644;
 }
 
 .dashboard__history-right {
