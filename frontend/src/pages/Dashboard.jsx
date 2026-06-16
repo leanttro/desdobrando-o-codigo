@@ -76,7 +76,7 @@ function Dashboard() {
     if (item.isError) {
       navigate(`/errors/${item.id}`);
     } else if (item.isInterview) {
-      navigate(`/history/${item.id}#simulados`);
+      navigate(`/interview/result/${item.sessionId}`);
     } else {
       navigate(`/history/${item.id}`);
     }
