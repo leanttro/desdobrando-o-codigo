@@ -7,23 +7,40 @@ const STEP_LABELS = [
   'Analisando lógica',
   'Gerando explicações',
   'Finalizando relatório',
+  'Simular entrevista',
 ];
 
-function ProgressSteps({ currentStep, totalSteps = 6 }) {
+function ProgressSteps({ currentStep, totalSteps = 7, interviewDone = false, onInterviewClick }) {
   return (
     <div className="progress-steps">
       {STEP_LABELS.slice(0, totalSteps).map((label, index) => {
         const stepNumber = index + 1;
+        const isInterview = stepNumber === 7;
+
         let status = 'pending';
-        if (stepNumber < currentStep) status = 'done';
-        if (stepNumber === currentStep) status = 'active';
+        if (isInterview) {
+          status = interviewDone ? 'done' : 'optional';
+        } else {
+          if (stepNumber < currentStep) status = 'done';
+          if (stepNumber === currentStep) status = 'active';
+        }
 
         return (
           <div key={stepNumber} className={`progress-step progress-step--${status}`}>
-            <div className="progress-step__circle">
-              {status === 'done' ? '✓' : stepNumber}
+            <div
+              className={`progress-step__circle ${isInterview && !interviewDone ? 'progress-step__circle--optional' : ''}`}
+              onClick={isInterview && !interviewDone && onInterviewClick ? onInterviewClick : undefined}
+              style={isInterview && !interviewDone && onInterviewClick ? { cursor: 'pointer' } : {}}
+              title={isInterview && !interviewDone ? 'Clique para simular entrevista' : ''}
+            >
+              {status === 'done' ? '✓' : isInterview && !interviewDone ? '⚡' : stepNumber}
             </div>
-            <div className="progress-step__label">{label}</div>
+            <div className="progress-step__label">
+              {label}
+              {isInterview && !interviewDone && (
+                <span className="progress-step__optional-tag">opcional</span>
+              )}
+            </div>
             {stepNumber < totalSteps && <div className="progress-step__line" />}
           </div>
         );
