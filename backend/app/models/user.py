@@ -17,6 +17,7 @@ class User(db.Model):
     whatsapp = db.Column(db.String(20), nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text("FALSE"))
+    uses_platform_key = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text("FALSE"))
     created_at = db.Column(
         db.DateTime(timezone=True),
         nullable=False,
@@ -56,6 +57,7 @@ class User(db.Model):
             "email": self.email,
             "whatsapp": self.whatsapp,
             "is_admin": self.is_admin,
+            "uses_platform_key": self.uses_platform_key,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }
