@@ -43,6 +43,30 @@
   color: #fff;
 }
 
+/* Etapa 7 — opcional, não feita */
+.progress-step--optional .progress-step__circle {
+  background-color: #fff7ed;
+  border: 2px dashed #f97316;
+  color: #f97316;
+  font-size: 1rem;
+  transition: background-color 0.2s, transform 0.15s;
+}
+
+.progress-step--optional .progress-step__circle:hover {
+  background-color: #ffedd5;
+  transform: scale(1.08);
+}
+
+.progress-step__optional-tag {
+  display: block;
+  font-size: 0.65rem;
+  color: #f97316;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
 .progress-step__label {
   margin-top: 0.5rem;
   font-size: 0.8rem;
@@ -57,6 +81,11 @@
 
 .progress-step--done .progress-step__label {
   color: #16a34a;
+}
+
+.progress-step--optional .progress-step__label {
+  color: #f97316;
+  font-weight: 600;
 }
 
 .progress-step__line {
