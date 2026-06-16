@@ -71,5 +71,198 @@
   font-size: 0.85rem;
 }
 
-/* Cole isso no Dashboard.css também */
-/* .dashboard__history-item--clickable */
+/* ── Botão Simular Entrevista ── */
+.analysis-detail__interview-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+  gap: 1rem;
+}
+
+.analysis-detail__interview-cta p {
+  margin: 0;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.analysis-detail__interview-cta strong {
+  display: block;
+  font-size: 1rem;
+  color: #1e293b;
+  margin-bottom: 0.2rem;
+}
+
+.btn-interview {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.3rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-interview:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* ── Seção Simulados Anteriores ── */
+.interview-sessions {
+  margin-top: 2.5rem;
+}
+
+.interview-sessions__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.interview-sessions__empty {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  padding: 1rem 0;
+}
+
+.interview-session-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.interview-session-card:hover {
+  border-color: #bfdbfe;
+}
+
+.interview-session-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.25rem;
+  cursor: pointer;
+  background: #f8fafc;
+  gap: 1rem;
+}
+
+.interview-session-card__header:hover {
+  background: #f1f5f9;
+}
+
+.interview-session-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.session-date {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.session-score {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+}
+
+.session-score--high {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.session-score--mid {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.session-score--low {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.session-questions-count {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.session-chevron {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  transition: transform 0.2s;
+}
+
+.session-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Detalhe expandido */
+.interview-session-card__body {
+  padding: 0 1.25rem 1.25rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.session-question-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.session-question-item:last-child {
+  border-bottom: none;
+}
+
+.session-question-item__q {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.session-question-item__score {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.session-question-item__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0.5rem 0 0.2rem;
+}
+
+.session-question-item__text {
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.session-question-item__ideal {
+  font-size: 0.85rem;
+  color: #15803d;
+  background: #f0fdf4;
+  border-left: 3px solid #16a34a;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0 6px 6px 0;
+  line-height: 1.5;
+}
