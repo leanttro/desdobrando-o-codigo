@@ -3,6 +3,7 @@ import { saveToken, clearToken, getToken, saveGroqKey, clearGroqKey } from '../s
 import api from '../services/api'
 
 const GROQ_KEY_STORAGE = 'groq_api_key'
+const USER_STORAGE = 'auth_user'
 
 const AuthContext = createContext(null)
 
@@ -17,12 +18,21 @@ export function AuthProvider({ children }) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]))
         if (payload.exp * 1000 > Date.now()) {
-          setUser({ id: payload.sub, email: payload.email, name: payload.name })
+          // Tenta recuperar userData completo do localStorage (inclui is_admin)
+          const stored = localStorage.getItem(USER_STORAGE)
+          if (stored) {
+            setUser(JSON.parse(stored))
+          } else {
+            // Fallback: só o que está no payload do JWT
+            setUser({ id: payload.sub })
+          }
         } else {
           clearToken()
+          localStorage.removeItem(USER_STORAGE)
         }
       } catch {
         clearToken()
+        localStorage.removeItem(USER_STORAGE)
       }
     }
     setLoading(false)
@@ -32,6 +42,8 @@ export function AuthProvider({ children }) {
     const res = await api.post('/auth/login', { email, password })
     const { token, user: userData } = res.data
     saveToken(token)
+    // Persiste userData completo (com is_admin) no localStorage
+    localStorage.setItem(USER_STORAGE, JSON.stringify(userData))
     setUser(userData)
     return userData
   }, [])
@@ -40,6 +52,7 @@ export function AuthProvider({ children }) {
     const res = await api.post('/auth/register', data)
     const { token, user: userData } = res.data
     saveToken(token)
+    localStorage.setItem(USER_STORAGE, JSON.stringify(userData))
     setUser(userData)
     return userData
   }, [])
@@ -47,6 +60,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     clearToken()
     clearGroqKey()
+    localStorage.removeItem(USER_STORAGE)
     setUser(null)
     setGroqKey('')
   }, [])
