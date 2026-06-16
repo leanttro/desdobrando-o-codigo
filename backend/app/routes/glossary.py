@@ -11,6 +11,7 @@ glossary_bp = Blueprint("glossary", __name__, url_prefix="/glossary")
 _GLOSSARY: list[dict] = [
     {
         "term": "VPS vs Cloud Function",
+        "category": "Infra",
         "short_explanation": (
             "VPS (Servidor Virtual Privado) é um servidor dedicado que fica rodando 24h, "
             "ideal para aplicações que precisam estar sempre online. "
@@ -27,6 +28,7 @@ _GLOSSARY: list[dict] = [
     },
     {
         "term": "Git",
+        "category": "DevOps",
         "short_explanation": (
             "Sistema de controle de versão que registra todas as alterações feitas "
             "no código ao longo do tempo. Permite voltar a versões anteriores e "
@@ -42,6 +44,7 @@ _GLOSSARY: list[dict] = [
     },
     {
         "term": "Docker",
+        "category": "Infra",
         "short_explanation": (
             "Ferramenta que empacota sua aplicação e todas as suas dependências "
             "em um 'container', garantindo que ela rode igual em qualquer máquina — "
@@ -58,6 +61,7 @@ _GLOSSARY: list[dict] = [
     },
     {
         "term": "API",
+        "category": "Backend",
         "short_explanation": (
             "Interface que permite que dois sistemas se comuniquem. "
             "Uma API define as regras de como pedir e receber dados de um serviço."
@@ -73,6 +77,7 @@ _GLOSSARY: list[dict] = [
     },
     {
         "term": "Frontend vs Backend",
+        "category": "Geral",
         "short_explanation": (
             "Frontend é tudo que o usuário vê e interage no navegador (botões, telas, formulários). "
             "Backend é o servidor que processa os dados, aplica as regras de negócio "
@@ -88,6 +93,7 @@ _GLOSSARY: list[dict] = [
     },
     {
         "term": "DevOps",
+        "category": "DevOps",
         "short_explanation": (
             "Conjunto de práticas que une desenvolvimento de software (Dev) "
             "e operações de infraestrutura (Ops) para entregar código mais rápido, "
@@ -104,6 +110,7 @@ _GLOSSARY: list[dict] = [
     },
     {
         "term": "Banco de Dados — quando usar qual",
+        "category": "Banco de dados",
         "short_explanation": (
             "PostgreSQL/MySQL: dados estruturados com relações (usuários, pedidos, produtos). "
             "MongoDB: documentos flexíveis sem esquema fixo. "
@@ -122,6 +129,7 @@ _GLOSSARY: list[dict] = [
     },
     {
         "term": "Variáveis de Ambiente",
+        "category": "Segurança",
         "short_explanation": (
             "Configurações sensíveis (senhas, chaves de API, URLs de banco) "
             "armazenadas fora do código-fonte, em arquivos .env ou no painel do servidor. "
@@ -138,6 +146,7 @@ _GLOSSARY: list[dict] = [
     },
     {
         "term": "Container",
+        "category": "Infra",
         "short_explanation": (
             "Unidade isolada que empacota uma aplicação com tudo que ela precisa rodar. "
             "É como uma mini-máquina virtual, mas muito mais leve e rápida. "
@@ -154,6 +163,7 @@ _GLOSSARY: list[dict] = [
     },
     {
         "term": "Deploy vs Subir Local",
+        "category": "DevOps",
         "short_explanation": (
             "Subir local significa rodar a aplicação no seu computador para desenvolvimento e testes. "
             "Deploy é o processo de publicar a aplicação em um servidor acessível pela internet."
