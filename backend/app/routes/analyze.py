@@ -7,6 +7,7 @@ POST /analyze/n8n   → analisa JSON de workflow n8n
 from __future__ import annotations
 
 import json
+import os
 import uuid
 
 from flask import Blueprint, g, jsonify, request
@@ -73,14 +74,28 @@ Não inclua texto fora do JSON. Não use markdown ao redor do JSON."""
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _get_groq_key() -> str | None:
-    return request.headers.get("X-Groq-Key", "").strip() or None
+def _resolve_groq_key(user: User) -> tuple[str | None, str | None]:
+    """
+    Retorna (groq_key, error_msg).
+    Prioridade:
+      1. Se uses_platform_key=True → usa GROQ_API_KEY do .env
+      2. Caso contrário → usa o header X-Groq-Key enviado pelo usuário
+    """
+    if user.uses_platform_key:
+        platform_key = os.environ.get("GROQ_API_KEY", "").strip()
+        if not platform_key:
+            return None, "Chave da plataforma não configurada. Contate o administrador."
+        return platform_key, None
+
+    key = request.headers.get("X-Groq-Key", "").strip()
+    if not key:
+        return None, "Header X-Groq-Key ausente ou vazio."
+    return key, None
 
 
 def _parse_groq_json(raw: str) -> dict:
     """Tenta parsear a resposta da Groq como JSON, com fallback gracioso."""
     try:
-        # Remove possível bloco ```json ... ```
         clean = raw.strip()
         if clean.startswith("```"):
             clean = clean.split("```", 2)[1]
@@ -100,7 +115,7 @@ def _save_analysis(user_id: str, analysis_type: str, title: str,
         user_id=user_id,
         type=analysis_type,
         title=title,
-        input_data=input_data[:10_000],  # limita input salvo no banco
+        input_data=input_data[:10_000],
         result=result,
     )
     db.session.add(analysis)
@@ -116,28 +131,25 @@ def _save_analysis(user_id: str, analysis_type: str, title: str,
 @jwt_required
 def analyze_code():
     current_user = User.query.get(g.current_user_id)
-    groq_key = _get_groq_key()
-    if not groq_key:
-        return jsonify({"error": "Header X-Groq-Key ausente ou vazio."}), 400
+
+    groq_key, err = _resolve_groq_key(current_user)
+    if err:
+        return jsonify({"error": err}), 400
 
     files = request.files.getlist("files")
     if not files or all(f.filename == "" for f in files):
         return jsonify({"error": "Nenhum arquivo enviado. Use o campo 'files'."}), 400
 
-    # 1. Extrai conteúdo dos arquivos
     try:
         code_content = parse_uploaded_files(files)
     except FileParserError as exc:
         return jsonify({"error": str(exc)}), exc.status_code
 
-    # 2. Monta contexto do usuário
     user_context = build_context(str(current_user.id))
-
     system_prompt = _CODE_SYSTEM
     if user_context:
         system_prompt = user_context + "\n\n" + system_prompt
 
-    # 3. Chama a Groq
     try:
         raw_response = call_groq(
             system_prompt=system_prompt,
@@ -148,16 +160,13 @@ def analyze_code():
     except GroqError as exc:
         return jsonify({"error": str(exc)}), exc.status_code
 
-    # 4. Parseia resposta
     result = _parse_groq_json(raw_response)
 
-    # 5. Define título a partir do conteúdo (primeiro arquivo ou fallback)
     first_filename = next(
         (f.filename for f in files if f.filename), "projeto"
     )
     title = first_filename[:255]
 
-    # 6. Salva no banco
     analysis = _save_analysis(
         user_id=str(current_user.id),
         analysis_type="code",
@@ -183,9 +192,10 @@ def analyze_code():
 @jwt_required
 def analyze_n8n():
     current_user = User.query.get(g.current_user_id)
-    groq_key = _get_groq_key()
-    if not groq_key:
-        return jsonify({"error": "Header X-Groq-Key ausente ou vazio."}), 400
+
+    groq_key, err = _resolve_groq_key(current_user)
+    if err:
+        return jsonify({"error": err}), 400
 
     body = request.get_json(silent=True) or {}
     json_input = body.get("json_input")
@@ -193,20 +203,16 @@ def analyze_n8n():
     if not json_input:
         return jsonify({"error": "Campo 'json_input' obrigatório no body."}), 400
 
-    # 1. Parseia e valida o JSON do n8n
     try:
         workflow_text, metadata = parse_n8n_json(json_input)
     except N8nParserError as exc:
         return jsonify({"error": str(exc)}), exc.status_code
 
-    # 2. Monta contexto do usuário
     user_context = build_context(str(current_user.id))
-
     system_prompt = _N8N_SYSTEM
     if user_context:
         system_prompt = user_context + "\n\n" + system_prompt
 
-    # 3. Chama a Groq
     try:
         raw_response = call_groq(
             system_prompt=system_prompt,
@@ -217,16 +223,11 @@ def analyze_n8n():
     except GroqError as exc:
         return jsonify({"error": str(exc)}), exc.status_code
 
-    # 4. Parseia resposta
     result = _parse_groq_json(raw_response)
-
-    # Enriquece o result com metadata do parser
     result["_metadata"] = metadata
 
-    # 5. Título baseado no nome do workflow
     title = metadata.get("workflow_name", "Workflow n8n")[:255]
 
-    # 6. Salva no banco
     raw_str = json_input if isinstance(json_input, str) else json.dumps(json_input)
     analysis = _save_analysis(
         user_id=str(current_user.id),
