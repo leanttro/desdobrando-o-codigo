@@ -16,41 +16,55 @@ function Dashboard() {
 
     const fetchHistory = async () => {
       try {
-        const response = await api.get('/history');
+        const [historyRes, interviewRes] = await Promise.allSettled([
+          api.get('/history'),
+          api.get('/interview/history'),
+        ]);
 
-        if (isMounted) {
-          const data = response.data || {};
+        if (!isMounted) return;
 
-          const analyses = (data.analyses || []).map((a) => ({
-            id: a.id,
-            type: a.type === 'n8n' ? 'n8n' : 'Código',
-            summary: a.title || '—',
-            created_at: a.created_at,
-            isError: false,
-          }));
+        const data = historyRes.status === 'fulfilled' ? (historyRes.value.data || {}) : {};
 
-          const errors = (data.errors || []).map((e) => ({
-            id: e.id,
-            type: 'Erro',
-            summary: e.error_input || e.explanation || '—',
-            created_at: e.created_at,
-            isError: true,
-          }));
+        const analyses = (data.analyses || []).map((a) => ({
+          id: a.id,
+          type: a.type === 'n8n' ? 'n8n' : 'Código',
+          summary: a.title || '—',
+          created_at: a.created_at,
+          isError: false,
+          isInterview: false,
+        }));
 
-          const merged = [...analyses, ...errors].sort(
-            (a, b) => new Date(b.created_at) - new Date(a.created_at)
-          );
+        const errors = (data.errors || []).map((e) => ({
+          id: e.id,
+          type: 'Erro',
+          summary: e.error_input || e.explanation || '—',
+          created_at: e.created_at,
+          isError: true,
+          isInterview: false,
+        }));
 
-          setHistory(merged);
-        }
+        const interviews =
+          interviewRes.status === 'fulfilled'
+            ? (interviewRes.value.data?.sessions || []).map((s) => ({
+                id: s.analysis_id,
+                sessionId: s.id,
+                type: 'Simulado',
+                summary: `Simulado — média ${s.average_score?.toFixed(1) ?? '?'}/10`,
+                created_at: s.created_at,
+                isError: false,
+                isInterview: true,
+              }))
+            : [];
+
+        const merged = [...analyses, ...errors, ...interviews].sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        );
+
+        setHistory(merged);
       } catch {
-        if (isMounted) {
-          setError('Não foi possível carregar o histórico agora.');
-        }
+        if (isMounted) setError('Não foi possível carregar o histórico agora.');
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -61,6 +75,8 @@ function Dashboard() {
   const handleItemClick = (item) => {
     if (item.isError) {
       navigate(`/errors/${item.id}`);
+    } else if (item.isInterview) {
+      navigate(`/history/${item.id}`); // abre o AnalysisDetail que já mostra os simulados
     } else {
       navigate(`/history/${item.id}`);
     }
@@ -108,12 +124,14 @@ function Dashboard() {
           <ul className="dashboard__history-list">
             {history.map((item) => (
               <li
-                key={item.id}
+                key={item.sessionId || item.id}
                 className="dashboard__history-item dashboard__history-item--clickable"
                 onClick={() => handleItemClick(item)}
               >
                 <div>
-                  <span className="dashboard__history-type">{item.type}</span>
+                  <span className={`dashboard__history-type${item.isInterview ? ' dashboard__history-type--interview' : ''}`}>
+                    {item.isInterview ? '⚡ ' : ''}{item.type}
+                  </span>
                   <p>{item.summary}</p>
                 </div>
                 <div className="dashboard__history-right">
